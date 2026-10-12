@@ -1,0 +1,42 @@
+{
+ "cases": [
+  {
+   "bytes": "ec77be7a0000000000000040",
+   "ctor": "PingRequest",
+   "name": "ping"
+  },
+  {
+   "bytes": "6f090d28020000004ca5e8dd6f00000000000000de0000000000000008d8b3d984d8a7d985000000b168de3a00000000",
+   "ctor": "SendMessageRequest",
+   "name": "send_message"
+  },
+  {
+   "bytes": "c5e623444ca5e8dd6f00000000000000de000000000000000000000000000000000000001400000000000000000000000000000000000000",
+   "ctor": "GetHistoryRequest",
+   "name": "get_history"
+  },
+  {
+   "bytes": "2d379fcb2b020000000000006b18f9c4",
+   "ctor": "InvokeAfterMsgRequest",
+   "name": "invoke_after_msg"
+  },
+  {
+   "bytes": "0d0d9bdab6000000a95ecdc10000000000b90f000850432036346269740000000231300007332e392e3220410266610000000000026661006b18f9c4",
+   "ctor": "InvokeWithLayerRequest",
+   "name": "invoke_with_layer_init"
+  },
+  {
+   "bytes": "21a604b30000000000000010000000008089c0df8e6b159000f9e744cec40eb8c6244676847882ccbc10a53277025005c27997ec348708bac939a0f3848c40d134a480fcb54164ceb11088e1e724247d016f841453d57352d8d645f0903228165af917f2bc5dad18e5756c263def9152a2ec0685879882dba33dabab02a33faec25bc2ea17b4ca20132c15a2c15945cb5c000000",
+   "ctor": "SaveFilePartRequest",
+   "name": "upload_bytes"
+  }
+ ],
+ "meta": {
+  "fixed_time": 1700000000.0,
+  "generator": "tools/vectors/generate.py",
+  "layer": 182,
+  "python": "3.12.10",
+  "reference_version": "1.1.4",
+  "seed": 1592639710
+ }
+}

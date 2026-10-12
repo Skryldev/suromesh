@@ -1,0 +1,62 @@
+{
+ "cases": [
+  {
+   "code": 420,
+   "message": "FLOOD_WAIT_5",
+   "python_class": "FloodWaitError"
+  },
+  {
+   "code": 400,
+   "message": "PHONE_NUMBER_INVALID",
+   "python_class": "PhoneNumberInvalidError"
+  },
+  {
+   "code": 503,
+   "message": "TIMEOUT",
+   "python_class": "TimeoutError"
+  },
+  {
+   "code": 420,
+   "message": "NO_WORKERS_RUNNING",
+   "python_class": "FloodError"
+  },
+  {
+   "code": 400,
+   "message": "CHAT_ID_INVALID",
+   "python_class": "ChatIdInvalidError"
+  },
+  {
+   "code": 400,
+   "message": "PEER_ID_INVALID",
+   "python_class": "PeerIdInvalidError"
+  },
+  {
+   "code": 401,
+   "message": "SESSION_REVOKED",
+   "python_class": "SessionRevokedError"
+  },
+  {
+   "code": 401,
+   "message": "AUTH_KEY_UNREGISTERED",
+   "python_class": "AuthKeyUnregisteredError"
+  },
+  {
+   "code": 400,
+   "message": "MSG_ID_INVALID",
+   "python_class": "MsgIdInvalidError"
+  },
+  {
+   "code": 400,
+   "message": "FILE_PARTS_INVALID",
+   "python_class": "FilePartsInvalidError"
+  }
+ ],
+ "meta": {
+  "fixed_time": 1700000000.0,
+  "generator": "tools/vectors/generate.py",
+  "layer": 182,
+  "python": "3.12.10",
+  "reference_version": "1.1.4",
+  "seed": 1592639710
+ }
+}

@@ -1,0 +1,33 @@
+{
+ "cases": [
+  {
+   "address": "149.154.167.51",
+   "dc_id": 2,
+   "key": "5aa6e562f84e0fa6735e4f763d5ec6d687b364d0eec040779b4869e39bc45167c575c249c1720977717005763c7f8a21e9cd89756ac50bbfe65501ddbffcae00d20ca5d85619bb0a8f392f3acf8cfbb4e0204269a4667b8ccd0df9cdefac48246c1279a3f25c392ea53e5c5d262216997306fb0987d92ce3600845a992b536bc55ca71b922744aaf84bf6b9a7252180bc7c75bc6b6826e905731495f2deecc8aea20bcd764d9dd66860fea1f4d4c976093c4de652fa316022848fdad7eb8f4bca0cb4fa89626e826dd96d5e19b28249530aa8fa259902b25b016a5c65815eb6fe69ccacaccc37a60bda3ad27ad26eaeb1f99d78cfa34acd5c548e06b4cd53797",
+   "name": "current_format",
+   "port": 443,
+   "session": "1AgAOMTQ5LjE1NC4xNjcuNTEBu1qm5WL4Tg-mc15Pdj1extaHs2TQ7sBAd5tIaeObxFFnxXXCScFyCXdxcAV2PH-KIenNiXVqxQu_5lUB3b_8rgDSDKXYVhm7Co85LzrPjPu04CBCaaRme4zNDfnN76xIJGwSeaPyXDkupT5cXSYiFplzBvsJh9ks42AIRamStTa8VcpxuSJ0Sq-Ev2uaclIYC8fHW8a2gm6QVzFJXy3uzIrqILzXZNndZoYP6h9NTJdgk8TeZS-jFgIoSP2tfrj0vKDLT6iWJugm3ZbV4ZsoJJUwqo-iWZArJbAWpcZYFetv5pzKyszDemC9o60nrSbq6x-Z14z6NKzVxUjga0zVN5c="
+  },
+  {
+   "name": "legacy_format_rejected",
+   "python_error": "error",
+   "session": "1A5WapzMBu1qm5WL4Tg-mc15Pdj1extaHs2TQ7sBAd5tIaeObxFFnxXXCScFyCXdxcAV2PH-KIenNiXVqxQu_5lUB3b_8rgDSDKXYVhm7Co85LzrPjPu04CBCaaRme4zNDfnN76xIJGwSeaPyXDkupT5cXSYiFplzBvsJh9ks42AIRamStTa8VcpxuSJ0Sq-Ev2uaclIYC8fHW8a2gm6QVzFJXy3uzIrqILzXZNndZoYP6h9NTJdgk8TeZS-jFgIoSP2tfrj0vKDLT6iWJugm3ZbV4ZsoJJUwqo-iWZArJbAWpcZYFetv5pzKyszDemC9o60nrSbq6x-Z14z6NKzVxUjga0zVN5c="
+  },
+  {
+   "address": "im-server.splus.ir",
+   "dc_id": 1,
+   "key": "5aa6e562f84e0fa6735e4f763d5ec6d687b364d0eec040779b4869e39bc45167c575c249c1720977717005763c7f8a21e9cd89756ac50bbfe65501ddbffcae00d20ca5d85619bb0a8f392f3acf8cfbb4e0204269a4667b8ccd0df9cdefac48246c1279a3f25c392ea53e5c5d262216997306fb0987d92ce3600845a992b536bc55ca71b922744aaf84bf6b9a7252180bc7c75bc6b6826e905731495f2deecc8aea20bcd764d9dd66860fea1f4d4c976093c4de652fa316022848fdad7eb8f4bca0cb4fa89626e826dd96d5e19b28249530aa8fa259902b25b016a5c65815eb6fe69ccacaccc37a60bda3ad27ad26eaeb1f99d78cfa34acd5c548e06b4cd53797",
+   "name": "domain_format",
+   "port": 443,
+   "session": "1AQASaW0tc2VydmVyLnNwbHVzLmlyAbtapuVi-E4PpnNeT3Y9XsbWh7Nk0O7AQHebSGnjm8RRZ8V1wknBcgl3cXAFdjx_iiHpzYl1asULv-ZVAd2__K4A0gyl2FYZuwqPOS86z4z7tOAgQmmkZnuMzQ35ze-sSCRsEnmj8lw5LqU-XF0mIhaZcwb7CYfZLONgCEWpkrU2vFXKcbkidEqvhL9rmnJSGAvHx1vGtoJukFcxSV8t7syK6iC812TZ3WaGD-ofTUyXYJPE3mUvoxYCKEj9rX649Lygy0-oliboJt2W1eGbKCSVMKqPolmQKyWwFqXGWBXrb-acysrMw3pgvaOtJ60m6usfmdeM-jSs1cVI4GtM1TeX"
+  }
+ ],
+ "meta": {
+  "fixed_time": 1700000000.0,
+  "generator": "tools/vectors/generate.py",
+  "layer": 182,
+  "python": "3.12.10",
+  "reference_version": "1.1.4",
+  "seed": 1592639710
+ }
+}

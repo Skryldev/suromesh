@@ -1,0 +1,47 @@
+{
+ "cases": [
+  {
+   "bytes": "f86b29cb01780000c01dfeffffffffff",
+   "ctor": "labeledPrice#cb296bf8",
+   "name": "int32_long_string"
+  },
+  {
+   "bytes": "f86b29cb01700000cb04fb711f010000",
+   "ctor": "labeledPrice#cb296bf8",
+   "name": "long"
+  },
+  {
+   "bytes": "b2dbd6ae01000000000000000000f83f00000000000002c00000000000000e40",
+   "ctor": "maskCoords#aed6dbb2",
+   "name": "double"
+  },
+  {
+   "bytes": "0bde5a142a00000000000000b5757299",
+   "ctor": "contact#145ade0b",
+   "name": "bool_boxed_true"
+  },
+  {
+   "bytes": "0bde5a142a00000000000000379779bc",
+   "ctor": "contact#145ade0b",
+   "name": "bool_boxed_false"
+  },
+  {
+   "bytes": "f18e7ebe1ac3c84656d1ab4af34f75fb0b2229d6",
+   "ctor": "req_pq_multi#be7e8ef1",
+   "name": "int128"
+  },
+  {
+   "bytes": "ec5ac9830201020001030000010500001ac3c84656d1ab4af34f75fb0b2229d61ac3c84656d1ab4af34f75fb0b2229d678b519d9f99ee5c1162677634e66b0924c81bcc7bcc04400d81971c7b1fff196",
+   "ctor": "p_q_inner_data#83c95aec",
+   "name": "int256"
+  }
+ ],
+ "meta": {
+  "fixed_time": 1700000000.0,
+  "generator": "tools/vectors/generate.py",
+  "layer": 182,
+  "python": "3.12.10",
+  "reference_version": "1.1.4",
+  "seed": 1592639710
+ }
+}

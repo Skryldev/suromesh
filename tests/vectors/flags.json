@@ -1,0 +1,42 @@
+{
+ "cases": [
+  {
+   "bytes": "27b74d27000000000000000087d61200000000004d8535ec",
+   "ctor": "User",
+   "name": "user_minimal"
+  },
+  {
+   "bytes": "27b74d270b0000000000000087d6120000000000b168de3a0000000003416c6903616c694d8535ec",
+   "ctor": "User",
+   "name": "user_flags0"
+  },
+  {
+   "bytes": "27b74d27004002100000000087d6120000000000070000004d8535ec",
+   "ctor": "User",
+   "name": "user_flags_mixed"
+  },
+  {
+   "bytes": "27b74d27000000000700000087d612000000000015c4b51c000000004d8535ec",
+   "ctor": "User",
+   "name": "user_flags2"
+  },
+  {
+   "bytes": "27b74d27000400000000000087d61200000000004d8535ec",
+   "ctor": "User",
+   "name": "user_self_flag"
+  },
+  {
+   "bytes": "7a4bbcd30100000000000000",
+   "ctor": "UserEmpty",
+   "name": "user_empty"
+  }
+ ],
+ "meta": {
+  "fixed_time": 1700000000.0,
+  "generator": "tools/vectors/generate.py",
+  "layer": 182,
+  "python": "3.12.10",
+  "reference_version": "1.1.4",
+  "seed": 1592639710
+ }
+}
