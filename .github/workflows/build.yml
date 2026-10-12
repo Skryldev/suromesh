@@ -27,11 +27,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      # ---------------------------------------------------------------
+      # نسخه Go دقیقاً از go.mod خوانده می‌شود تا:
+      #   1) لوکال و CI یکسان باشند
+      #   2) tlgen (که از go/format استفاده می‌کند) deterministic بماند
+      #   3) خطای «stale» به‌خاطر تفاوت نسخه‌ها رخ ندهد
+      # ---------------------------------------------------------------
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.26.x"
-          check-latest: true
+          go-version-file: 'go.mod'
+          check-latest: false
           cache: true
 
       # ---------------------------------------------------------------
@@ -44,11 +50,6 @@ jobs:
         run: |
           set -euo pipefail
           choco install mingw -y --no-progress
-          MINGW_BIN="/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw64/bin"
-          if [ -d "${MINGW_BIN}" ]; then
-            echo "${MINGW_BIN}" >> "${GITHUB_PATH}"
-          fi
-          # افزودن مسیر جایگزین در صورت تفاوت نسخه chocolatey
           for d in /c/ProgramData/chocolatey/lib/mingw/tools/install/mingw64/bin \
                    /c/tools/mingw64/bin \
                    /c/mingw64/bin; do
@@ -146,13 +147,14 @@ jobs:
 
       # ---------------------------------------------------------------
       # Race detector: نیاز به cgo دارد (CGO_ENABLED=1).
-      # - روی Linux و macOS کامپایلر C پیش‌فرض موجود است.
-      # - روی Windows با step «Install mingw» نصب شده است.
-      # - timeout افزایش یافته چون race detector 2x-20x کندتر است.
-      # اگر CI کند شد، می‌توانید شرط را به Linux محدود کنید:
-      #   if: matrix.os == 'ubuntu-latest'
+      # فقط روی Linux اجرا می‌شود چون:
+      #   - race detector روی Linux بالغ‌ترین و پایدارترین است
+      #   - روی Windows با mingw کند و شکننده است
+      #   - روی macOS سیگنال‌های خاصی دارد که ممکن است کند باشد
+      # اگر می‌خواهید روی macOS هم اجرا شود، شرط را بردارید.
       # ---------------------------------------------------------------
       - name: Race
+        if: matrix.os == 'ubuntu-latest'
         env:
           CGO_ENABLED: "1"
         run: go test -race -count=1 -timeout 20m ./...
@@ -160,8 +162,37 @@ jobs:
       - name: Fuzz seed corpora
         run: go test -count=1 -run Fuzz ./...
 
+      # ---------------------------------------------------------------
+      # Generator verification: اگر stale بود، diff واقعی را نمایش بده
+      # تا دیباگ راحت‌تر شود.
+      # ---------------------------------------------------------------
       - name: Generator verification
-        run: go run ./cmd/tlgen -verify
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "::group::tlgen -verify"
+          if go run ./cmd/tlgen -verify; then
+            echo "::endgroup::"
+            exit 0
+          fi
+          echo "::endgroup::"
+
+          echo "::error::tlgen verification failed; regenerating to show diff"
+
+          # regenerate تا diff واقعی را ببینیم
+          go run ./cmd/tlgen || true
+
+          echo "::group::git diff after regeneration (stat)"
+          git --no-pager diff --stat -- tl/gen/ || true
+          echo "::endgroup::"
+
+          echo "::group::git diff after regeneration (first 200 lines)"
+          git --no-pager diff -- tl/gen/ | head -200 || true
+          echo "::endgroup::"
+
+          echo "::error::Run 'go run ./cmd/tlgen' locally and commit the result."
+          exit 1
 
   cross-build:
     name: cross-build (${{ matrix.goos }}/${{ matrix.goarch }})
@@ -184,8 +215,8 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.26.x"
-          check-latest: true
+          go-version-file: 'go.mod'
+          check-latest: false
           cache: true
 
       - name: Vet (cross)
