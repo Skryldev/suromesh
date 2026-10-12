@@ -8,6 +8,8 @@ permissions:
   contents: read
 
 env:
+  # پیش‌فرض: cgo خاموش است تا cross-compile و باینری‌های static کار کنند.
+  # فقط در stepهایی که به cgo نیاز دارند (مثل race detector) به 1 override می‌شود.
   CGO_ENABLED: "0"
 
 jobs:
@@ -32,12 +34,35 @@ jobs:
           check-latest: true
           cache: true
 
+      # ---------------------------------------------------------------
+      # نصب mingw روی Windows برای فعال‌سازی cgo و race detector.
+      # روی Linux و macOS کامپایلر C به‌طور پیش‌فرض موجود است.
+      # ---------------------------------------------------------------
+      - name: Install mingw (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          set -euo pipefail
+          choco install mingw -y --no-progress
+          MINGW_BIN="/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw64/bin"
+          if [ -d "${MINGW_BIN}" ]; then
+            echo "${MINGW_BIN}" >> "${GITHUB_PATH}"
+          fi
+          # افزودن مسیر جایگزین در صورت تفاوت نسخه chocolatey
+          for d in /c/ProgramData/chocolatey/lib/mingw/tools/install/mingw64/bin \
+                   /c/tools/mingw64/bin \
+                   /c/mingw64/bin; do
+            if [ -d "$d" ]; then
+              echo "$d" >> "${GITHUB_PATH}"
+            fi
+          done
+
       - name: Go environment (debug)
         shell: bash
         run: |
           echo "::group::Go environment"
           go version
-          go env GOOS GOARCH GOMOD GOFLAGS
+          go env GOOS GOARCH GOMOD GOFLAGS CGO_ENABLED CC
           echo "::endgroup::"
 
       - name: Module verification
@@ -90,7 +115,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          # git ls-files با -z برای امنیت در برابر نام‌های عجیب
           OUT="$(
             git ls-files -z '*.go' \
               | xargs -0 -r gofmt -l
@@ -106,9 +130,7 @@ jobs:
           echo "All Go files are gofmt-clean ✅"
 
       # ---------------------------------------------------------------
-      # Formatting cross-check روی macOS/Windows: فقط presence چک می‌شود
-      # که gofmt اجرا می‌شود، اما نتیجه‌اش نادیده گرفته می‌شود چون
-      # ممکن است CRLF باعث false positive شود.
+      # Formatting cross-check روی macOS/Windows: فقط advisory.
       # ---------------------------------------------------------------
       - name: Formatting (advisory, non-blocking)
         if: matrix.os != 'ubuntu-latest'
@@ -122,8 +144,18 @@ jobs:
       - name: Tests
         run: go test -count=1 ./...
 
+      # ---------------------------------------------------------------
+      # Race detector: نیاز به cgo دارد (CGO_ENABLED=1).
+      # - روی Linux و macOS کامپایلر C پیش‌فرض موجود است.
+      # - روی Windows با step «Install mingw» نصب شده است.
+      # - timeout افزایش یافته چون race detector 2x-20x کندتر است.
+      # اگر CI کند شد، می‌توانید شرط را به Linux محدود کنید:
+      #   if: matrix.os == 'ubuntu-latest'
+      # ---------------------------------------------------------------
       - name: Race
-        run: go test -race -count=1 ./...
+        env:
+          CGO_ENABLED: "1"
+        run: go test -race -count=1 -timeout 20m ./...
 
       - name: Fuzz seed corpora
         run: go test -count=1 -run Fuzz ./...
