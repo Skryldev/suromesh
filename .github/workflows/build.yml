@@ -1,0 +1,116 @@
+name: build
+
+# Cross-platform Go build + full engineering gate (Phase 21 §17).
+# Live Soroush Plus tests NEVER run here: they are credential-gated and
+# remain a separate, explicit operator operation (docs/ci-cd.md).
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  CGO_ENABLED: "0"
+
+jobs:
+  gate:
+    name: gate (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          check-latest: true
+
+      - name: Module verification
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum || { echo "go.mod/go.sum not tidy"; exit 1; }
+          go mod verify
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Formatting
+        run: |
+          # gofmt -l must produce no output.
+          test -z "$(gofmt -l .)"
+
+      - name: Tests
+        run: go test -count=1 ./...
+
+      - name: Race
+        run: go test -race -count=1 ./...
+
+      - name: Fuzz seed corpora
+        run: go test -count=1 -run Fuzz ./...
+
+      - name: Generator verification
+        run: go run ./cmd/tlgen -verify
+
+  cross-build:
+    name: cross-build (${{ matrix.goos }}/${{ matrix.goarch }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: windows
+            goarch: amd64
+            ext: .exe
+          - goos: linux
+            goarch: amd64
+            ext: ""
+          - goos: linux
+            goarch: arm64
+            ext: ""
+          - goos: darwin
+            goarch: amd64
+            ext: ""
+          - goos: darwin
+            goarch: arm64
+            ext: ""
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          check-latest: true
+
+      - name: Vet (cross)
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: go vet ./...
+
+      - name: Build example binaries (all packages compile for target)
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          mkdir -p dist
+          go build -trimpath -ldflags "-s -w" -o dist/suromesh-example-updates${{ matrix.ext }} ./examples/updates
+          go build -trimpath -ldflags "-s -w" -o dist/suromesh-example-media${{ matrix.ext }} ./examples/media
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: suromesh-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14

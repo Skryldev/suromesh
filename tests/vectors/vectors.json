@@ -1,0 +1,22 @@
+{
+ "cases": [
+  {
+   "bytes": "63241605a7d77367df93bc543fcf8c75faacf548507d118b834fec0ac2ec447ee20698470117000015c4b51c040000000100000000000000feffffffffffffff03000000000000000000000000000040",
+   "ctor": "ResPQ",
+   "name": "vector_long_boxed"
+  },
+  {
+   "bytes": "950850ae7b00000000000000c801000003000000000000006400000000000000000000000100000065000000070000000000000002000000660000000e00000000000000",
+   "ctor": "FutureSalts",
+   "name": "vector_future_salt_bare"
+  }
+ ],
+ "meta": {
+  "fixed_time": 1700000000.0,
+  "generator": "tools/vectors/generate.py",
+  "layer": 182,
+  "python": "3.12.10",
+  "reference_version": "1.1.4",
+  "seed": 1592639710
+ }
+}

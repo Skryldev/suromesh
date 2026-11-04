@@ -1,0 +1,36 @@
+# --- Third-party reference tree (GPL-3.0; local-only behavioral oracle) ----
+# The upstream reference is a separate nested git repository used solely for
+# differential vector generation. It is MUST-NOT-RELEASE
+# (docs/release-artifacts.md) and is excluded from version control so the
+# published repository contains only SuroMesh material.
+reference/
+
+# --- Runtime secrets / live-validation state (never commit) ----------------
+*.session
+*.session.tmp
+*.session.new
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+live-evidence*.jsonl
+*.evidence.jsonl
+
+# --- Test / build artifacts ------------------------------------------------
+*.out
+*.prof
+*.test
+coverage.txt
+coverage.html
+dist/
+build/
+
+# --- Editor / OS metadata --------------------------------------------------
+.idea/
+.vscode/
+*.swp
+Thumbs.db
+.DS_Store
+desktop.ini

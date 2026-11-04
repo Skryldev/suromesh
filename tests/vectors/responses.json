@@ -1,0 +1,27 @@
+{
+ "cases": [
+  {
+   "bytes": "016d5cf300000000000100004042ae7415c4b51c0000000015c4b51c0100000027b74d27000000000000000005000000000000004d8535ec15c4b51c0000000000f1536501000000",
+   "ctor": "rpc_result#f35c6d01",
+   "name": "rpc_result_updates"
+  },
+  {
+   "bytes": "19ca4421a40100000c464c4f4f445f574149545f37000000",
+   "ctor": "rpc_error#2144ca19",
+   "name": "rpc_error"
+  },
+  {
+   "bytes": "4042ae7415c4b51c0000000015c4b51c0100000027b74d27000000000000000005000000000000004d8535ec15c4b51c0000000000f1536501000000",
+   "ctor": "updates#74ae4240",
+   "name": "updates"
+  }
+ ],
+ "meta": {
+  "fixed_time": 1700000000.0,
+  "generator": "tools/vectors/generate.py",
+  "layer": 182,
+  "python": "3.12.10",
+  "reference_version": "1.1.4",
+  "seed": 1592639710
+ }
+}
