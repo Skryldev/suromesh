@@ -1,0 +1,71 @@
+name: docs
+
+# Documentation validation (Phase 23 §12): production build (with
+# broken-link enforcement), TypeScript check, API-reference currency,
+# and compilation of every documented Go example.
+# Live Soroush Plus tests NEVER run here.
+on:
+  push:
+    paths: ["website/**", "tools/apidocs/**", ".github/workflows/docs.yml"]
+  pull_request:
+    paths: ["website/**", "tools/apidocs/**", ".github/workflows/docs.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install dependencies
+        working-directory: website
+        run: npm ci --no-audit --no-fund
+
+      - name: TypeScript check
+        working-directory: website
+        run: npm run typecheck
+
+      - name: Docusaurus production build
+        working-directory: website
+        run: npm run build
+
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: suromesh-docs-site
+          path: website/build/
+          retention-days: 14
+          if-no-files-found: error
+
+  go-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          check-latest: true
+
+      - name: Compile documentation examples
+        run: |
+          go build ./website/examples/...
+          go vet ./website/examples/...
+
+      - name: API reference currency
+        run: |
+          go run ./tools/apidocs
+          git diff --exit-code -- website/docs/api/generated \
+            || { echo "API reference pages drifted from source; run: go run ./tools/apidocs"; exit 1; }

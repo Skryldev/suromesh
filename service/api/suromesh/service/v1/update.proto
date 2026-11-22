@@ -1,0 +1,69 @@
+// UpdateService: server-streaming updates and account events.
+//
+// Delivery semantics (ADR-0010): events are AT-MOST-ONCE PER STREAM.
+// Each event carries a per-stream monotonic stream_sequence so gaps are
+// detectable. The account's update frontier is durably persisted by the
+// service, so the ACCOUNT never loses protocol state across restarts —
+// but an individual stream can lose events across disconnects. Consumers
+// reconcile missed data through reads (StreamHistory / GetMessages /
+// ListDialogs). Slow consumers are DISCONNECTED by policy (bounded
+// per-stream buffer); this never blocks other streams or account
+// operations.
+
+syntax = "proto3";
+
+package suromesh.service.v1;
+
+import "suromesh/service/v1/common.proto";
+
+option go_package = "github.com/Skryldev/suromesh/service/gen/suromesh/service/v1;servicev1";
+
+service UpdateService {
+  // Streams upstream update events for one account. Requires
+  // streams:read. Default idle timeout 30 minutes (keepalives apply);
+  // the caller may cancel at any time.
+  rpc StreamUpdates(StreamUpdatesRequest) returns (stream UpdateEvent);
+
+  // Streams connection/authorization state transitions for one account.
+  // Independent of StreamUpdates so connection watchers need no
+  // messaging permission.
+  rpc StreamAccountEvents(StreamAccountEventsRequest) returns (stream AccountEvent);
+}
+
+message StreamUpdatesRequest {
+  string account_id = 1;
+}
+message StreamAccountEventsRequest {
+  string account_id = 1;
+}
+
+message UpdateEvent {
+  oneof event {
+    Message new_message = 1;
+    Message edited_message = 2;
+    DeletedMessages deleted_messages = 3;
+    ReadState read_state = 4;
+  }
+  // Per-stream monotonic sequence starting at 1; gaps indicate lost
+  // events for THIS stream (reconnect and reconcile via reads).
+  int64 stream_sequence = 5;
+}
+
+message DeletedMessages {
+  Peer peer = 1;
+  repeated string message_ids = 2;
+}
+
+message ReadState {
+  Peer peer = 1;
+  int64 max_id = 2;
+  bool outgoing = 3;
+}
+
+message AccountEvent {
+  oneof event {
+    ConnectionObservation connection = 1;
+    AuthorizationState auth = 2;
+  }
+  int64 stream_sequence = 3;
+}

@@ -1,0 +1,157 @@
+// SuroMesh Service — shared contract types (v1).
+//
+// Evolution rules (ADR-0004): additive only; removed fields/values are
+// reserved (numbers and names); explicit presence via `optional`;
+// timestamps are google.protobuf.Timestamp; service ids are UUID
+// strings; upstream message ids are decimal int64 strings (safe for
+// JSON/JS consumers).
+
+syntax = "proto3";
+
+package suromesh.service.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/Skryldev/suromesh/service/gen/suromesh/service/v1;servicev1";
+
+// PeerRef is an opaque reference to a peer. Exactly one field is set.
+message PeerRef {
+  oneof ref {
+    // Canonical peer id: "user:<id64>" | "chat:<id64>" | "channel:<id64>".
+    string peer_id = 1;
+    // Username without the leading '@'.
+    string username = 2;
+    // The bound account itself (saved-messages scope).
+    bool self = 3;
+  }
+}
+
+// Peer is a resolved peer summary (server-provided data only).
+message Peer {
+  string peer_id = 1;
+  PeerKind kind = 2;
+  string display_name = 3;
+  optional string username = 4;
+}
+
+enum PeerKind {
+  PEER_KIND_UNSPECIFIED = 0;
+  PEER_KIND_USER = 1;
+  PEER_KIND_CHAT = 2;
+  PEER_KIND_CHANNEL = 3;
+}
+
+// Direction of a message relative to the bound account.
+enum Direction {
+  DIRECTION_UNSPECIFIED = 0;
+  DIRECTION_INCOMING = 1;
+  DIRECTION_OUTGOING = 2;
+}
+
+// Message is the domain message. Identity is (peer, message_id) —
+// never the message id alone (protocol invariant).
+message Message {
+  string message_id = 1; // decimal string of the per-peer int64 id
+  Peer peer = 2;
+  Direction direction = 3;
+  string text = 4;
+  // UTF-16 code-unit offsets (protocol parity; matters for Persian text
+  // and emoji slicing).
+  repeated MessageEntity entities = 5;
+  optional string reply_to_message_id = 6;
+  google.protobuf.Timestamp date = 7;
+  MediaSummary media = 8;
+  bool is_service = 9;
+  string service_kind = 10; // populated when is_service (e.g. "pinned")
+}
+
+message MessageEntity {
+  MessageEntityKind kind = 1;
+  int32 offset = 2;    // UTF-16 code units
+  int32 length = 3;    // UTF-16 code units
+  string url = 4;      // for URL/mention kinds when provided
+}
+
+enum MessageEntityKind {
+  MESSAGE_ENTITY_KIND_UNSPECIFIED = 0;
+  MESSAGE_ENTITY_KIND_MENTION = 1;
+  MESSAGE_ENTITY_KIND_HASHTAG = 2;
+  MESSAGE_ENTITY_KIND_URL = 3;
+  MESSAGE_ENTITY_KIND_BOLD = 4;
+  MESSAGE_ENTITY_KIND_ITALIC = 5;
+  MESSAGE_ENTITY_KIND_CODE = 6;
+  MESSAGE_ENTITY_KIND_PRE = 7;
+  MESSAGE_ENTITY_KIND_OTHER = 8;
+}
+
+message MediaSummary {
+  MediaKind kind = 1;
+  int64 size_bytes = 2;
+  string mime_type = 3;
+  optional string file_name = 4;
+  // False for cached/stripped inline media whose bytes ARE the content.
+  bool downloadable = 5;
+}
+
+enum MediaKind {
+  MEDIA_KIND_UNSPECIFIED = 0;
+  MEDIA_KIND_PHOTO = 1;
+  MEDIA_KIND_DOCUMENT = 2;
+  MEDIA_KIND_UNSUPPORTED = 3;
+}
+
+// ConnectionObservation is the account's desired-vs-observed upstream
+// connection state (desired is operator intent; observed is fact).
+message ConnectionObservation {
+  ConnectionDesired desired = 1;
+  ConnectionObserved observed = 2;
+  string last_error_class = 3; // sanitized class; never a payload
+  google.protobuf.Timestamp changed_at = 4;
+}
+
+enum ConnectionDesired {
+  CONNECTION_DESIRED_UNSPECIFIED = 0;
+  CONNECTION_DESIRED_STOPPED = 1;
+  CONNECTION_DESIRED_RUNNING = 2;
+}
+
+enum ConnectionObserved {
+  CONNECTION_OBSERVED_UNSPECIFIED = 0;
+  CONNECTION_OBSERVED_DISCONNECTED = 1;
+  CONNECTION_OBSERVED_CONNECTING = 2;
+  CONNECTION_OBSERVED_CONNECTED = 3;
+  CONNECTION_OBSERVED_READY = 4;
+}
+
+// AuthorizationState mirrors the account's upstream authorization axis
+// (distinct from connectivity).
+enum AuthorizationState {
+  AUTHORIZATION_STATE_UNSPECIFIED = 0;
+  AUTHORIZATION_STATE_UNAUTHORIZED = 1;
+  AUTHORIZATION_STATE_CODE_PENDING = 2;
+  AUTHORIZATION_STATE_PASSWORD_REQUIRED = 3;
+  AUTHORIZATION_STATE_AUTHORIZED = 4;
+  AUTHORIZATION_STATE_REVOKED = 5;
+}
+
+// AccountStatus is the operator-facing binding status.
+enum AccountStatus {
+  ACCOUNT_STATUS_UNSPECIFIED = 0;
+  ACCOUNT_STATUS_PENDING_AUTH = 1;
+  ACCOUNT_STATUS_ACTIVE = 2;
+  ACCOUNT_STATUS_SUSPENDED = 3;
+  ACCOUNT_STATUS_REMOVED = 4;
+}
+
+// Account summarizes one bound Soroush Plus account. The raw phone
+// number is never present: masked_phone is a display-only mask and
+// display_alias is the operator-chosen label.
+message Account {
+  string account_id = 1;
+  string display_alias = 2;
+  string masked_phone = 3;
+  AccountStatus status = 4;
+  AuthorizationState auth_state = 5;
+  google.protobuf.Timestamp created_at = 6;
+  ConnectionObservation connection = 7;
+}

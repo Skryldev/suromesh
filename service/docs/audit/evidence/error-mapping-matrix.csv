@@ -1,0 +1,23 @@
+sdk_error,adapter_translation,domain_error,grpc_code,errorinfo_reason,retry_semantics,live_validated
+context.Canceled (wrapped),pass-through,context.Canceled,CANCELED,REQUEST_CANCELED,no retry,no
+context.DeadlineExceeded (wrapped),pass-through,context.DeadlineExceeded,DEADLINE_EXCEEDED,REQUEST_TIMEOUT,no retry,no
+RPCError 420 FLOOD_WAIT_N,FloodWaitError{Seconds},ErrFloodWait,RESOURCE_EXHAUSTED,UPSTREAM_FLOOD_WAIT,retry after N seconds,no
+RPCError 401 AUTH_KEY_UNREGISTERED/INVALID,typed,ErrSessionRevoked,FAILED_PRECONDITION,SESSION_REVOKED,re-auth required,yes
+RPCError 401 SESSION_REVOKED/EXPIRED,typed,ErrSessionRevoked,FAILED_PRECONDITION,SESSION_REVOKED,re-auth required,yes
+RPCError 400 FILE_REFERENCE_EXPIRED,typed,ErrFileReferenceExpired,FAILED_PRECONDITION,FILE_REFERENCE_EXPIRED,"re-fetch message, retry once",yes
+RPCError 400 PEER_ID_INVALID/PEER_HASH_INVALID,typed,ErrInvalidInput,INVALID_ARGUMENT,INVALID_INPUT,resolve peer first,yes
+RPCError 400 CHANNEL_PRIVATE,typed,ErrNotFound,NOT_FOUND,NOT_FOUND,no recovery,yes
+RPCError 400 MESSAGE_ID_INVALID,typed,ErrNotFound,NOT_FOUND,NOT_FOUND,no recovery,yes
+RPCError other (incl 500 INTERNAL),typed,ErrUpstreamProtocol,INTERNAL,UPSTREAM_PROTOCOL_FAILURE,no blind retry,yes
+ConnectionLostError / AsConnectionLost,typed,ErrAmbiguousMutation,UNAVAILABLE,OPERATION_AMBIGUOUS,NEVER auto-retry; reconcile via reads,yes
+SDK ErrClosed,typed,ErrAccountStopped,UNAVAILABLE,ACCOUNT_STOPPED,no retry (terminal),no
+SDK ErrNotReady,typed,ErrAccountNotConnected,FAILED_PRECONDITION,ACCOUNT_NOT_CONNECTED,connect first,no
+SDK ErrFileReferenceExpired,typed,ErrFileReferenceExpired,FAILED_PRECONDITION,FILE_REFERENCE_EXPIRED,re-fetch + retry once,yes
+transport Error ClassTemporary,typed,ErrUpstreamUnavailable,UNAVAILABLE,UPSTREAM_UNAVAILABLE,bounded retry ok,no
+transport Error Class other,typed,ErrUpstreamProtocol,INTERNAL,UPSTREAM_PROTOCOL_FAILURE,no retry,no
+net.Error timeout,typed,ErrUpstreamTimeout,DEADLINE_EXCEEDED,UPSTREAM_TIMEOUT,bounded retry ok,no
+connection refused text,typed,ErrUpstreamUnavailable,UNAVAILABLE,UPSTREAM_UNAVAILABLE,bounded retry ok,no
+unknown/unexpected shape,fallback,ErrUpstreamProtocol,INTERNAL,UPSTREAM_PROTOCOL_FAILURE,no retry; investigate,no
+domain invalid input,local,ErrInvalidInput,INVALID_ARGUMENT,INVALID_INPUT,fix input,no
+domain not found (cross-tenant),local,ErrNotFound,NOT_FOUND,NOT_FOUND,no existence oracle,no
+domain too many requests,local,ErrTooManyRequests,RESOURCE_EXHAUSTED,TENANT_QUOTA,back off,no

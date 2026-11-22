@@ -100,3 +100,14 @@ CI proves repeatability; the deterministic release procedure and the
 mandatory live gate live in docs/release-process.md. Publication of any
 artifact (Go module tag, future PyPI package, future image) is
 owner-controlled and never automatic.
+
+## Service documentation website (Phase 24 design)
+
+A second, independent Docusaurus site lives at `service-docs/` (its own
+package.json/build; same pinned Docusaurus 3.10.2 stack, protobuf
+syntax highlighting, offline search). It documents the designed gRPC
+service contract and follows the same rules: broken links fail the
+build, no credentials in examples, CI validation job separate from the
+SDK docs, deployment owner-gated. A dedicated CI workflow lands with
+the service implementation phases (the site is buildable locally now:
+`cd service-docs && npm ci && npm run build`).

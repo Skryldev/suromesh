@@ -1,0 +1,72 @@
+test,layer,command,status,evidence,live_dependency
+TestDomainDependencyBoundary,architecture,go test ./internal/domain/,PASS,go list -deps purity,no
+TestPeerID_ParseRoundTrip,domain,go test ./internal/domain/,PASS,canonical round trip,no
+TestPeerID_InvalidInputs,domain,go test ./internal/domain/,PASS,11 invalid inputs rejected,no
+TestPeerRef_StringForms,domain,go test ./internal/domain/,PASS,3 ref forms,no
+TestErrorClassification_FullTaxonomy,domain,go test ./internal/domain/,PASS,25 classification cases,no
+TestErrorClassification_SentinelsAreDistinct,domain,go test ./internal/domain/,PASS,18 sentinels pairwise,no
+TestFloodWait_UnwrapAndSeconds,domain,go test ./internal/domain/,PASS,unwrap + seconds,no
+TestFormatID_DecimalStrings,domain,go test ./internal/domain/,PASS,2^53+1 beyond JS range,no
+TestStateStrings_Stable,domain,go test ./internal/domain/,PASS,contract strings pinned,no
+TestLoad_Defaults,config,go test ./internal/config/,PASS,defaults + listener choice,no
+TestLoad_EnvOverridesDefaults,config,go test ./internal/config/,PASS,env precedence,no
+TestValidate_TLSRules,config,go test ./internal/config/,PASS,TLS/dev-plaintext rules,no
+TestValidate_Ranges,config,go test ./internal/config/,PASS,range constraints,no
+TestConfig_LogValueShapeOnly,config,go test ./internal/config/,PASS,no paths/secrets in logs,no
+TestLoad_KMSProviderFailsClosed,config,go test ./internal/config/,PASS,kms fail-closed,no
+TestLoad_StorageRequired,config,go test ./internal/config/,PASS,DSN required,no
+TestLoad_BootstrapKeyValidation,config,go test ./internal/config/,PASS,sk_ shape + tenant,no
+TestRedactor_ScrubsMessageAndAttributes,logging,go test ./internal/platform/logging/,PASS,msg+attrs+groups scrubbed,no
+TestRequestID_AttachedFromContext,logging,go test ./internal/platform/logging/,PASS,correlation id,no
+TestSessionBlob_ExportImportSymmetry,adapter,go test ./internal/infrastructure/upstream/,PASS,full round trip x2 (auth/unauth),no
+TestSessionBlob_InvalidInputs,adapter,go test ./internal/infrastructure/upstream/,PASS,5 corrupted inputs typed,no
+TestSessionBlob_RevocationReflected,adapter,go test ./internal/infrastructure/upstream/,PASS,unauthorized preserved,no
+TestTranslate_ErrorMappingTable,adapter,go test ./internal/infrastructure/upstream/,PASS,19-entry mapping table,no
+TestTranslate_TransportAndNetwork,adapter,go test ./internal/infrastructure/upstream/,PASS,conn refused + exotic,no
+TestConvertUpdate_Families,adapter,go test ./internal/infrastructure/upstream/,PASS,6 families + batch + unsupported,no
+TestConvertMessage_Fidelity,adapter,go test ./internal/infrastructure/upstream/,PASS,UTF-16 entities/reply/media,no
+TestPeerConversion_RoundTrip,adapter,go test ./internal/infrastructure/upstream/,PASS,3 kinds round trip,no
+TestEnvelope_SealUnsealRoundTrip,crypto,go test ./internal/infrastructure/cryptography/,PASS,no plaintext leak,no
+TestEnvelope_TamperFailsClosed,crypto,go test ./internal/infrastructure/cryptography/,PASS,3 tamper positions,no
+TestEnvelope_WrongKeyFailsClosed,crypto,go test ./internal/infrastructure/cryptography/,PASS,different KEK rejected,no
+TestEnvelope_RotationReWrap,crypto,go test ./internal/infrastructure/cryptography/,PASS,re-wrap round trip,no
+TestFileKeyProvider_Errors,crypto,go test ./internal/infrastructure/cryptography/,PASS,missing/short file,no
+TestKMSProvider_FailsClosed,crypto,go test ./internal/infrastructure/cryptography/,PASS,owner-decision blocker,no
+TestRunner_StartWithSessionRestore,application,go test ./internal/application/,PASS,unseal -> client,no
+TestRunner_MutationSerialization,application,go test ./internal/application/,PASS,"200 mutations, max concurrent 1",no
+TestRunner_ReadsRunConcurrently,application,go test ./internal/application/,PASS,max concurrent >= 2,no
+TestRunner_StopDuringBlockedMutation,application,go test ./internal/application/,PASS,bounded shutdown,no
+TestRunner_SessionPersistedOnUpstreamSignal,application,go test ./internal/application/,PASS,auth transition,no
+TestRunner_SubscribeHubDelivery,application,go test ./internal/application/,PASS,seq=1 monotonic,no
+TestRunner_SlowSubscriberDropped,application,go test ./internal/application/,PASS,overflow -> dropped,no
+TestStress_MutationThroughputAndOrdering,application,go test ./internal/application/,PASS,200 mutations ordered,no
+TestStress_QueueSaturationRejectsDeterministically,application,go test ./internal/application/,PASS,saturation rejected,no
+TestStress_ConcurrentSubscribeUnsubscribe,application,go test ./internal/application/,PASS,no goroutine leak,no
+TestStress_MultipleSubscribersAllReceive,application,go test ./internal/application/,PASS,5 subs x 20 events,no
+TestStress_StopAllIdempotentAndComplete,application,go test ./internal/application/,PASS,5 runners joined,no
+TestManager_DuplicateRunnerRejected,application,go test ./internal/application/,PASS,ErrAlreadyExists,no
+TestManager_TenantScopedGet,application,go test ./internal/application/,PASS,cross-tenant NOT_FOUND,no
+TestAuthN_MissingKeyFails,grpc,in-process server + client,PASS,Unauthenticated,no
+TestAuthN_BadKeyFails,grpc,in-process server + client,PASS,Unauthenticated,no
+TestAuthZ_MissingPermissionDenied,grpc,in-process server + client,PASS,PermissionDenied + NOT_FOUND read,no
+TestHealth_ServedWithoutCredentials,grpc,in-process server + client,PASS,SERVING without key,no
+TestDeadline_CallerDeadlineWins,grpc,in-process server + client,PASS,DeadlineExceeded,no
+TestStreamUpdates_DeliversAndSequences,grpc,in-process server + fake upstream,PASS,3 events monotonic,no
+TestStreamUpdates_ClientCancelEndsCleanly,grpc,in-process server,PASS,prompt end,no
+TestStreamHistory_UnscriptedFailsHonest,grpc,in-process server,PASS,no fabricated messages,no
+TestMediaUpload_FirstFrameMustBeMetadata,grpc,in-process server,PASS,InvalidArgument,no
+TestMediaUpload_MetadataValidation,grpc,in-process server,PASS,5 validation cases,no
+TestMediaUpload_SizeEnforcement,grpc,in-process server,PASS,oversize rejected,no
+TestMediaUpload_UnscriptedUpstreamFailsHonest,grpc,in-process server,PASS,no fabricated success,no
+TestAppLifecycle_x6,lifecycle,go test ./internal/app/,PASS,normal/failure/repeat/timeout/concurrent/order,no
+TestPersistence_TenantLifecycle,persistence,TEST_DATABASE_DSN (CI postgres),BLOCKED_ENVIRONMENT,requires postgres service,no
+TestPersistence_AccountScopedAccess,persistence,TEST_DATABASE_DSN,BLOCKED_ENVIRONMENT,requires postgres,no
+TestPersistence_SessionStoreLoad,persistence,TEST_DATABASE_DSN,BLOCKED_ENVIRONMENT,requires postgres,no
+TestPersistence_IdempotencyClaimAndRace,persistence,TEST_DATABASE_DSN,BLOCKED_ENVIRONMENT,requires postgres,no
+TestPersistence_IdempotencyConcurrentClaims,persistence,TEST_DATABASE_DSN,BLOCKED_ENVIRONMENT,8 goroutines 1 winner,no
+TestPersistence_AuditRecorded,persistence,TEST_DATABASE_DSN,BLOCKED_ENVIRONMENT,requires postgres,no
+LiveAuthFlow,live,requires Soroush Plus OTP,BLOCKED_NO_LIVE_ACCOUNT,sendCode+signIn against real service,yes
+LiveSessionReuse,live,requires real authorized session,BLOCKED_NO_LIVE_ACCOUNT,restore without re-auth,yes
+LiveMessaging,live,requires real authorized account,BLOCKED_NO_LIVE_ACCOUNT,send/edit/delete,yes
+LiveMedia,live,requires real account,BLOCKED_NO_LIVE_ACCOUNT,upload/download SHA-256,yes
+LiveUpdates,live,requires real account + second sender,BLOCKED_NO_LIVE_ACCOUNT,real update stream,yes

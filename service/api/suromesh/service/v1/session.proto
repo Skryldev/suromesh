@@ -1,0 +1,59 @@
+// SessionService: encrypted session material management.
+//
+// The service NEVER returns session material over gRPC — only status
+// metadata. ImportSession accepts a reference-compatible compact string
+// session (privileged permission sessions:write); the material is
+// immediately re-encrypted into the service's envelope format.
+// RevokeSession crypto-shreds locally; to invalidate upstream use
+// AuthenticationService.LogOut.
+
+syntax = "proto3";
+
+package suromesh.service.v1;
+
+import "google/protobuf/timestamp.proto";
+import "suromesh/service/v1/common.proto";
+
+option go_package = "github.com/Skryldev/suromesh/service/gen/suromesh/service/v1;servicev1";
+
+service SessionService {
+  // Imports a string session and binds the account to the caller's
+  // tenant. Combines BindAccount + session import in one privileged call.
+  rpc ImportSession(ImportSessionRequest) returns (ImportSessionResponse);
+
+  // Returns storage status (presence, format version, last persist time).
+  // No secret material is included by design.
+  rpc GetSessionStatus(GetSessionStatusRequest) returns (GetSessionStatusResponse);
+
+  // Crypto-shreds the stored session (wrapped DEK destroyed). The
+  // account returns to the re-authentication path.
+  rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse);
+}
+
+message ImportSessionRequest {
+  // The account's phone (only used for the keyed lookup hash + mask).
+  string phone = 1;
+  string display_alias = 2;
+  // Reference-compatible compact session string (v1 layout).
+  string string_session = 3;
+}
+message ImportSessionResponse {
+  Account account = 1;
+  bool existing = 2;
+}
+
+message GetSessionStatusRequest {
+  string account_id = 1;
+}
+message GetSessionStatusResponse {
+  bool present = 1;
+  string format_version = 2;
+  google.protobuf.Timestamp last_persisted = 3;
+}
+
+message RevokeSessionRequest {
+  string account_id = 1;
+}
+message RevokeSessionResponse {
+  bool shredded = 1;
+}

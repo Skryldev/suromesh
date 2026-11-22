@@ -1,0 +1,344 @@
+// SuroMesh Service — proposed gRPC contract (Phase 24 DESIGN, not final).
+// Generation and server implementation follow in roadmap phases S2/S3.
+//
+// Canonical documentation: service/docs/api-design/protobuf.md
+// Style: suromesh.service.v1 · additive evolution · reserved fields on
+// removal · google.rpc.ErrorInfo reasons for machine-readable errors.
+
+syntax = "proto3";
+
+package suromesh.service.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/rpc/error_details.proto";
+
+option go_package = "github.com/Skryldev/suromesh/service/gen/suromesh/service/v1;servicev1";
+
+// ---------- common ----------
+
+// Opaque peer reference. Exactly one field set.
+message PeerRef {
+  oneof ref {
+    string peer_id = 1;      // "user:123" | "chat:456" | "channel:789"
+    string username = 2;     // without '@'
+    bool self = 3;           // the bound account itself
+  }
+}
+
+// Domain message. Identity is (peer, id) — never id alone.
+message Message {
+  string message_id = 1;            // decimal string of the per-peer int64
+  Peer peer = 2;                    // resolved peer summary
+  Direction direction = 3;
+  string text = 4;
+  repeated MessageEntity entities = 5;  // UTF-16 code-unit offsets (protocol parity)
+  optional string reply_to_message_id = 6;
+  google.protobuf.Timestamp date = 7;
+  MediaSummary media = 8;
+  bool is_service = 9;
+  string edited_note = 10;          // reserved wording; presence semantics TBD in S2
+  reserved 11 to 15;
+}
+
+message Peer {
+  string peer_id = 1;               // canonical "kind:id"
+  PeerKind kind = 2;
+  string display_name = 3;          // server-provided; may be empty
+  optional string username = 4;
+}
+
+enum PeerKind { PEER_KIND_UNSPECIFIED = 0; PEER_KIND_USER = 1; PEER_KIND_CHAT = 2; PEER_KIND_CHANNEL = 3; }
+enum Direction { DIRECTION_UNSPECIFIED = 0; DIRECTION_INCOMING = 1; DIRECTION_OUTGOING = 2; }
+
+message MessageEntity {
+  EntityKind kind = 1;
+  int32 offset = 2;                 // UTF-16 code units
+  int32 length = 3;
+  string url = 4;                   // for URL/mention kinds
+}
+enum EntityKind {
+  ENTITY_KIND_UNSPECIFIED = 0; ENTITY_KIND_MENTION = 1; ENTITY_KIND_HASHTAG = 2;
+  ENTITY_KIND_URL = 3; ENTITY_KIND_BOLD = 4; ENTITY_KIND_ITALIC = 5;
+  ENTITY_KIND_CODE = 6; ENTITY_KIND_PRE = 7; ENTITY_KIND_OTHER = 8;
+}
+
+message MediaSummary {
+  MediaKind kind = 1;
+  int64 size_bytes = 2;
+  string mime_type = 3;
+  optional string file_name = 4;
+  bool downloadable = 5;            // false for cached/stripped inline
+}
+enum MediaKind { MEDIA_KIND_UNSPECIFIED = 0; MEDIA_KIND_PHOTO = 1; MEDIA_KIND_DOCUMENT = 2; MEDIA_KIND_UNSUPPORTED = 3; }
+
+message PageToken { string token = 1; } // opaque
+
+// ---------- AuthenticationService ----------
+
+service AuthenticationService {
+  // Requests an OTP for the account binding. One call per operator action.
+  rpc SendCode(SendCodeRequest) returns (SendCodeResponse);
+  // Submits the OTP. On PASSWORD_REQUIRED the caller must call SubmitPassword.
+  rpc SubmitCode(SubmitCodeRequest) returns (SubmitCodeResponse);
+  // Completes 2FA via SRP. The password is used in-memory only.
+  rpc SubmitPassword(SubmitPasswordRequest) returns (SubmitPasswordResponse);
+  rpc GetAuthorizationState(GetAuthorizationStateRequest) returns (GetAuthorizationStateResponse);
+  rpc LogOut(LogOutRequest) returns (google.protobuf.Empty);
+}
+
+message SendCodeRequest { string account_id = 1; }
+message SendCodeResponse { AuthorizationState state = 2; }
+message SubmitCodeRequest { string account_id = 1; string code = 2; string idempotency_key = 3; }
+message SubmitCodeResponse { AuthorizationState state = 1; optional Account account = 2; }
+message SubmitPasswordRequest { string account_id = 1; string password = 2; }
+message SubmitPasswordResponse { AuthorizationState state = 1; optional Account account = 2; }
+message GetAuthorizationStateRequest { string account_id = 1; }
+message GetAuthorizationStateResponse { AuthorizationState state = 1; }
+message LogOutRequest { string account_id = 1; }
+
+enum AuthorizationState {
+  AUTHORIZATION_STATE_UNSPECIFIED = 0;
+  AUTHORIZATION_STATE_UNAUTHORIZED = 1;
+  AUTHORIZATION_STATE_CODE_PENDING = 2;
+  AUTHORIZATION_STATE_PASSWORD_REQUIRED = 3;
+  AUTHORIZATION_STATE_AUTHORIZED = 4;
+  AUTHORIZATION_STATE_REVOKED = 5;
+}
+
+// ---------- AccountService ----------
+
+service AccountService {
+  // Binds a Soroush Plus account to the caller's tenant (creates the
+  // AccountBinding in PENDING_AUTH; authentication follows).
+  rpc BindAccount(BindAccountRequest) returns (BindAccountResponse);
+  rpc GetAccount(GetAccountRequest) returns (GetAccountResponse);
+  rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse);
+  rpc SuspendAccount(SuspendAccountRequest) returns (SuspendAccountResponse);
+  rpc ResumeAccount(ResumeAccountRequest) returns (ResumeAccountResponse);
+  // Removes the binding; the encrypted session is crypto-shredded.
+  rpc RemoveAccount(RemoveAccountRequest) returns (google.protobuf.Empty);
+}
+
+message BindAccountRequest {
+  string phone = 1;             // transmitted over TLS; stored only as keyed hash + masked display
+  string display_alias = 2;     // operator-chosen label (never derived from the phone)
+}
+message BindAccountResponse { Account account = 1; }
+message GetAccountRequest { string account_id = 1; }
+message GetAccountResponse { Account account = 1; }
+message ListAccountsRequest { int32 page_size = 1; string page_token = 2; }
+message ListAccountsResponse { repeated Account accounts = 1; optional string next_page_token = 2; }
+message SuspendAccountRequest { string account_id = 1; }
+message SuspendAccountResponse { Account account = 1; }
+message ResumeAccountRequest { string account_id = 1; }
+message ResumeAccountResponse { Account account = 1; }
+message RemoveAccountRequest { string account_id = 1; }
+
+message Account {
+  string account_id = 1;
+  string display_alias = 2;     // operator-chosen; never the raw phone
+  string masked_phone = 3;      // "+98 ••• •• 21 77"-style display only
+  AccountStatus status = 4;
+  AuthorizationState auth_state = 5;
+  google.protobuf.Timestamp created_at = 6;
+  ConnectionSummary connection = 7;
+}
+enum AccountStatus { ACCOUNT_STATUS_UNSPECIFIED = 0; ACCOUNT_STATUS_PENDING_AUTH = 1; ACCOUNT_STATUS_ACTIVE = 2; ACCOUNT_STATUS_SUSPENDED = 3; ACCOUNT_STATUS_REMOVED = 4; }
+message ConnectionSummary { bool connected = 1; bool authorized = 2; }
+
+// ---------- SessionService ----------
+
+service SessionService {
+  // Imports a reference-compatible string session (privileged; encrypted at rest).
+  rpc ImportSession(ImportSessionRequest) returns (ImportSessionResponse);
+  rpc GetSessionStatus(GetSessionStatusRequest) returns (GetSessionStatusResponse);
+  // Revokes locally (crypto-shred). Does NOT log out upstream; use
+  // AuthenticationService.LogOut for that.
+  rpc RevokeSession(RevokeSessionRequest) returns (google.protobuf.Empty);
+}
+
+message ImportSessionRequest { string phone = 1; string display_alias = 2; string string_session = 3; }
+message ImportSessionResponse { Account account = 1; }  // returns masked metadata only
+message GetSessionStatusRequest { string account_id = 1; }
+message GetSessionStatusResponse { bool present = 1; google.protobuf.Timestamp last_persisted = 2; string format_version = 3; }
+message RevokeSessionRequest { string account_id = 1; }
+
+// ---------- ConnectionService ----------
+
+service ConnectionService {
+  // Asynchronous: returns immediately; observe via StreamAccountEvents
+  // or GetConnectionState. The upstream handshake can take tens of seconds.
+  rpc Connect(ConnectRequest) returns (ConnectResponse);
+  rpc Disconnect(DisconnectRequest) returns (DisconnectResponse);
+  rpc GetConnectionState(GetConnectionStateRequest) returns (GetConnectionStateResponse);
+}
+
+message ConnectRequest { string account_id = 1; }
+message ConnectResponse { ConnectionObservation observed = 1; }  // snapshot at accept time
+message DisconnectRequest { string account_id = 1; }
+message DisconnectResponse { ConnectionObservation observed = 1; }
+message GetConnectionStateRequest { string account_id = 1; }
+message GetConnectionStateResponse { ConnectionObservation observed = 1; }
+
+message ConnectionObservation {
+  string desired = 1;            // RUNNING | STOPPED
+  string observed = 2;           // DISCONNECTED | CONNECTING | CONNECTED | READY
+  string last_error_class = 3;   // sanitized class, no payload
+}
+
+// ---------- UserService ----------
+
+service UserService {
+  rpc GetMe(GetMeRequest) returns (GetMeResponse);
+  rpc ResolvePeer(ResolvePeerRequest) returns (ResolvePeerResponse);
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc GetChannel(GetChannelRequest) returns (GetChannelResponse);
+  rpc GetChat(GetChatRequest) returns (GetChatResponse);
+}
+message GetMeRequest { string account_id = 1; }
+message GetMeResponse { Peer peer = 1; }
+message ResolvePeerRequest { string account_id = 1; PeerRef peer = 2; }
+message ResolvePeerResponse { Peer peer = 1; }
+message GetUserRequest { string account_id = 1; PeerRef peer = 2; PeerView view = 3; }
+message GetUserResponse { User user = 1; }
+message GetChannelRequest { string account_id = 1; PeerRef peer = 2; PeerView view = 3; }
+message GetChannelResponse { Channel channel = 1; }
+message GetChatRequest { string account_id = 1; PeerRef peer = 2; PeerView view = 3; }
+message GetChatResponse { Chat chat = 1; }
+enum PeerView { PEER_VIEW_UNSPECIFIED = 0; PEER_VIEW_BASIC = 1; PEER_VIEW_FULL = 2; }
+
+message User {
+  string peer_id = 1; string display_name = 2; optional string username = 3;
+  bool is_bot_like = 4;  // derived from protocol flags; naming finalized in S2
+}
+message Channel { string peer_id = 1; string title = 2; optional string username = 3; int32 participants_count = 4; }
+message Chat { string peer_id = 1; string title = 2; int32 participants_count = 3; }
+
+// ---------- DialogService ----------
+
+service DialogService {
+  rpc ListDialogs(ListDialogsRequest) returns (ListDialogsResponse);
+}
+message ListDialogsRequest { string account_id = 1; int32 page_size = 2; string page_token = 3; }
+message ListDialogsResponse {
+  repeated Dialog dialogs = 1;
+  optional string next_page_token = 2;
+  optional int32 total_estimate = 3; // server-provided estimate only
+}
+message Dialog {
+  Peer peer = 1; int64 top_message_id = 2; int32 unread_count = 3;
+  google.protobuf.Timestamp last_activity = 4;
+}
+
+// ---------- MessagingService ----------
+
+service MessagingService {
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+  rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse);
+  rpc EditMessage(EditMessageRequest) returns (EditMessageResponse);
+  rpc DeleteMessages(DeleteMessagesRequest) returns (DeleteMessagesResponse);
+  rpc ForwardMessages(ForwardMessagesRequest) returns (ForwardMessagesResponse);
+  rpc PinMessage(PinMessageRequest) returns (PinMessageResponse);
+  rpc UnpinMessage(UnpinMessageRequest) returns (google.protobuf.Empty);
+  rpc MarkAsRead(MarkAsReadRequest) returns (google.protobuf.Empty);
+  rpc SearchMessages(SearchMessagesRequest) returns (SearchMessagesResponse);
+  // Newest-first server-streamed history; ends at end-of-history or cancellation.
+  rpc StreamHistory(StreamHistoryRequest) returns (stream MessageEvent);
+}
+
+message SendMessageRequest {
+  string account_id = 1; PeerRef peer = 2; string text = 3;
+  optional string reply_to_message_id = 4; string idempotency_key = 5;
+}
+message SendMessageResponse { Message message = 1; }
+
+message GetMessagesRequest { string account_id = 1; PeerRef peer = 2; repeated string message_ids = 3; }
+message GetMessagesResponse { repeated Message messages = 1; repeated string missing_ids = 2; }
+
+message EditMessageRequest { string account_id = 1; PeerRef peer = 2; string message_id = 3; string text = 4; string idempotency_key = 5; }
+message EditMessageResponse { Message message = 1; }
+
+message DeleteMessagesRequest { string account_id = 1; PeerRef peer = 2; repeated string message_ids = 3; string idempotency_key = 4; }
+message DeleteMessagesResponse { repeated string deleted_ids = 1; }
+
+message ForwardMessagesRequest { string account_id = 1; PeerRef from_peer = 2; PeerRef to_peer = 3; repeated string message_ids = 4; string idempotency_key = 5; }
+message ForwardMessagesResponse { repeated Message messages = 1; }
+
+message PinMessageRequest { string account_id = 1; PeerRef peer = 2; string message_id = 3; string idempotency_key = 4; }
+message PinMessageResponse { Message message = 1; }
+message UnpinMessageRequest { string account_id = 1; PeerRef peer = 2; string message_id = 3; }
+
+message MarkAsReadRequest { string account_id = 1; PeerRef peer = 2; string max_id = 3; }
+
+message SearchMessagesRequest { string account_id = 1; PeerRef peer = 2; string query = 3; int32 limit = 4; }
+message SearchMessagesResponse { repeated Message messages = 1; }
+
+message StreamHistoryRequest { string account_id = 1; PeerRef peer = 2; int32 limit = 3; }
+message MessageEvent { Message message = 1; }
+
+// ---------- UpdateService ----------
+
+service UpdateService {
+  // Server-streaming update events for one account. At-most-once per
+  // stream (ADR-010); bounded buffer; slow consumers are disconnected.
+  rpc StreamUpdates(StreamUpdatesRequest) returns (stream UpdateEvent);
+  // Connection/authorization state transitions for one account.
+  rpc StreamAccountEvents(StreamAccountEventsRequest) returns (stream AccountEvent);
+}
+
+message StreamUpdatesRequest { string account_id = 1; }
+message UpdateEvent {
+  oneof event {
+    Message new_message = 1;
+    Message edited_message = 2;
+    DeletedMessages deleted_messages = 3;
+    ReadState read_state = 4;
+  }
+  int64 stream_sequence = 5;    // per-stream monotonic sequence
+}
+message DeletedMessages { Peer peer = 1; repeated string message_ids = 2; }
+message ReadState { Peer peer = 1; int64 max_id = 2; bool outgoing = 3; }
+
+message StreamAccountEventsRequest { string account_id = 1; }
+message AccountEvent {
+  oneof event {
+    ConnectionObservation connection = 1;
+    AuthorizationState auth = 2;
+  }
+  int64 stream_sequence = 3;
+}
+
+// ---------- MediaService ----------
+
+service MediaService {
+  rpc GetMediaMetadata(GetMediaMetadataRequest) returns (GetMediaMetadataResponse);
+  // Client-streaming upload: first frame carries metadata (size required
+  // by the upstream protocol), subsequent frames carry chunks.
+  rpc UploadMedia(stream UploadMediaFrame) returns (UploadMediaResponse);
+  // Server-streaming download of the referenced media.
+  rpc DownloadMedia(DownloadMediaRequest) returns (stream DownloadChunk);
+}
+
+message GetMediaMetadataRequest { string account_id = 1; PeerRef peer = 2; string message_id = 3; }
+message GetMediaMetadataResponse { MediaSummary media = 1; optional string file_reference_state = 2; }
+
+message UploadMediaFrame {
+  oneof frame {
+    UploadMediaStart start = 1;
+    bytes chunk = 2;
+  }
+}
+message UploadMediaStart {
+  string account_id = 1; PeerRef peer = 2; int64 size_bytes = 3;
+  string file_name = 4; string mime_type = 5;
+  bool as_document = 6; string idempotency_key = 7;
+}
+message UploadMediaResponse { Message message = 1; }  // sent message carrying the media
+
+message DownloadMediaRequest {
+  string account_id = 1; PeerRef peer = 2; string message_id = 3;
+  // chunk size hint; server clamps to protocol limits
+  int32 chunk_size_hint = 4;
+}
+message DownloadChunk { bytes data = 1; int64 offset = 2; }

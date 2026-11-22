@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>گزارش جامع ممیزی فنی — سرویس SuroMesh</title>
+<style>
+
+:root { --bg:#f6f7f9; --fg:#1c2733; --head:#14304d; --accent:#2563ab; --ok:#1a7f37; --warn:#b45309; --fail:#b91c1c; --block:#6d28d9; --line:#d5dbe2; }
+* { box-sizing: border-box; }
+html { font-size: 16px; }
+body { font-family: Tahoma, "Segoe UI", Vazirmatn, sans-serif; background: var(--bg); color: var(--fg); margin: 0; line-height: 1.85; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 1.5rem; }
+header.hero { background: var(--head); color: #fff; padding: 2.5rem 0; }
+header.hero h1 { margin: 0 0 .4rem; font-size: 1.9rem; }
+header.hero .sub { opacity: .85; font-size: 1.02rem; }
+h2 { color: var(--head); border-bottom: 3px solid var(--accent); padding-bottom: .35rem; margin-top: 2.6rem; font-size: 1.45rem; }
+h3 { color: var(--accent); margin-top: 1.6rem; font-size: 1.13rem; }
+section { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 1.4rem 1.6rem; margin: 1.4rem 0; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .92rem; display: block; overflow-x: auto; }
+th { background: var(--head); color: #fff; padding: .5rem .7rem; text-align: right; white-space: nowrap; }
+td { border: 1px solid var(--line); padding: .45rem .7rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f2f5f8; }
+code, pre { direction: ltr; text-align: left; font-family: Consolas, "Courier New", monospace; }
+code { background: #eef1f4; padding: .1rem .35rem; border-radius: 4px; font-size: .88em; }
+pre { background: #f0f3f6; border: 1px solid var(--line); border-radius: 8px; padding: .9rem 1.1rem; overflow-x: auto; font-size: .86rem; line-height: 1.5; }
+pre code { background: none; padding: 0; }
+.badge { display: inline-block; padding: .12rem .6rem; border-radius: 999px; font-size: .8rem; font-weight: bold; color: #fff; white-space: nowrap; }
+.b-ok { background: var(--ok); } .b-warn { background: var(--warn); } .b-fail { background: var(--fail); } .b-block { background: var(--block); } .b-info { background: #52606d; }
+.verdict { font-size: 1.25rem; font-weight: bold; padding: 1rem 1.3rem; border-radius: 10px; background: #eaf3ea; border: 2px solid var(--ok); color: var(--ok); }
+.verdict.partial { background: #fdf3e7; border-color: var(--warn); color: var(--warn); }
+.toc { columns: 2; column-gap: 2.5rem; }
+.toc a { color: var(--accent); text-decoration: none; }
+.toc li { margin: .2rem 0; }
+.meta td:first-child { font-weight: bold; background: #eef1f4; width: 30%; }
+.note { border-right: 4px solid var(--accent); background: #eef4fa; padding: .7rem 1rem; border-radius: 6px; margin: .9rem 0; }
+.warnbox { border-right: 4px solid var(--warn); background: #fdf5ea; padding: .7rem 1rem; border-radius: 6px; margin: .9rem 0; }
+.failbox { border-right: 4px solid var(--fail); background: #fdeeee; padding: .7rem 1rem; border-radius: 6px; margin: .9rem 0; }
+footer { text-align: center; color: #6a7683; font-size: .85rem; padding: 2rem 0 3rem; }
+@media print { body { background: #fff; } section { border: none; page-break-inside: avoid; } .toc { columns: 1; } }
+@media (max-width: 720px) { .toc { columns: 1; } .wrap { padding: 1rem; } table { font-size: .84rem; } }
+.ltr { direction: ltr; unicode-bidi: embed; text-align: left; }
+
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+<h1>گزارش جامع ممیزی فنی — سرویس SuroMesh</h1>
+<div class="sub">صحه‌سنجی انطباق با SDK مرجع، معماری، امنیت، پایستگی و عملیات — دامنه آفلاین (بدون حساب واقعی Soroush Plus)</div>
+</div></header>
+<div class="wrap">
+<section id="sec1">
+<h2>۱. مشخصات ممیزی</h2>
+<table class="meta">
+<tr><td>نام پروژه</td><td>SuroMesh Service (ماژول <code class='ltr'>github.com/Skryldev/suromesh/service</code>)</td></tr>
+<tr><td>SDK مرجع (بالادست)</td><td><code class='ltr'>github.com/Skryldev/suromesh</code> — MTProto 2.0، Layer 182، 1,684 constructor، بدون وابستگی خارجی</td></tr>
+<tr><td>Commit مبنا</td><td><code class='ltr'>64243fc add files</code> + تغییرات در حالت stage (۵۱۴+ فایل، بدون commit توسط عامل)</td></tr>
+<tr><td>تاریخ اجرای ممیزی</td><td>۱۴۰۵/۰۹/۰۱ (2026-11-21 … 2026-11-22)</td></tr>
+<tr><td>نسخه Go</td><td><code class='ltr'>go1.26.3 windows/amd64</code> (۲۰ هسته منطقی)</td></tr>
+<tr><td>PostgreSQL</td><td>نسخه ۱۵+ مورد نیاز؛ تست‌های intégration فقط با <code class='ltr'>TEST_DATABASE_DSN</code> (در CI: کانتینر postgres:16-alpine) — در محیط محلی اجرا نشد</td></tr>
+<tr><td>سیستم‌عامل محیط تست</td><td>Windows 10 (build 26100)، amd64</td></tr>
+<tr><td>دامنه ممیزی</td><td>لایه‌های A تا I: بازرسی معماری، انطباق SDK، مپ خطا، تست افتراقی، تست رقابتی، امنیت، تحلیل ایستا، چرخه عمر، بنچمارک</td></tr>
+<tr><td>محدودیت محیطی</td><td>حساب واقعی Soroush Plus در دسترس نیست؛ تماس با سرویس واقعی انجام نشد (سیاست مستند از فاز ۱۸)</td></tr>
+<tr><td>Status کلی</td><td><span class='badge b-ok'>SDK CONFORMANCE VERIFIED WITH DOCUMENTED ADAPTATIONS</span> (offline scope)</td></tr>
+</table>
+</section>
+<section id="sec2">
+<h2>۲. خلاصه مدیریتی</h2>
+<p>ممیزی حاضر به‌صورت مستقل، سوروس_SERVICE را در برابر SDK مرجع صحه‌سنجی کرد. همه‌ی قابلیت‌های آفلاین‌قابل‌آزمون اجرا و با شواهد قابل‌بازتولید مستند شدند. یک <strong>نقص واقعی</strong> در لایه آداپتور (ترتیب ناپایدار state کانال‌ها در blob نشست) کشف و اصلاح شد؛ و یک نشت کلید توسعه در فایل compose حذف شد.</p>
+<p><strong>انطباق با SDK:</strong> تمام ۲۴ قابلیتِ به‌کاررفته‌ی SDK در سرویس، با جدول انطباق و تست‌های افتراقی (شامل round-trip بایت‌سطحِ نشست و جدول کامل مپ خطا) پشتیبانی می‌شوند. هیچ قابلیتی اختراع نشده؛ عملیات‌های پشتیبانی‌نشده صریحاً UNSUPPORTED برگردانده می‌شوند.</p>
+<p><strong>آنچه صحه‌سنجی نشده:</strong> رفتار در برابر سرویس واقعی Soroush Plus (احراز هویت OTP، پیام‌رسانی، رسانه، بازیابی نشست واقعی) — به‌صورت سیستماتیک <span class="badge b-block">BLOCKED_NO_LIVE_ACCOUNT</span> طبقه‌بندی شده است.</p>
+<div class="warnbox"><strong>نتیجه صلاحیت production:</strong> به‌صورت صادقانه، صلاحیت production کامل نشده است. سه ورودی بیرونی باقی است: (۱) اعتبارنامه واقعی Soroush Plus، (۲) تصمیم مالک روی KMS، (۳) مجوز انتشار. همه مسیرهای آفلاین سبز هستند.</div>
+</section>
+<section id="sec3">
+<h2>۳. معماری واقعی میکروسرویس</h2>
+<h3>۳.۱ مرزبندی لایه‌ها (Hexagonal)</h3>
+<p>ساختار پیاده‌شده دقیقاً مطابق طرح مصوب فاز ۲۴ است. لایه domain کاملاً خالص است و تست مرزی <code class="ltr">TestDomainDependencyBoundary</code> (از طریق <code class="ltr">go list -deps</code>) وارد شدن SDK/protobuf/gRPC را در سطح CI مسدود می‌کند.</p>
+<pre><code>cmd/service → app (state machine) → resources:
+  storage (PostgreSQL + migrations)
+  crypto (KEK provider)
+  gateway (upstream.Factory)
+  runtime (Manager + use cases + gRPC server)
+
+internal/domain        ← هیچ import از SDK/grpc/proto (تست مرزی)
+internal/ports         ← interface ها (فقط domain)
+internal/application   ← Runner/Manager/hub/use cases
+internal/infrastructure↔ upstream (SDK) · persistence (pgx) · cryptography
+internal/grpcapi       ← server + interceptors + handlers + errors</code></pre>
+<h3>۳.۲ نقاط قوت</h3>
+<ul><li>تک‌درِ SDK: فقط <code class="ltr">internal/infrastructure/upstream</code> ماژول SDK را import می‌کند (تست‌شده).</li><li>مالکیت صریح منابع: هر goroutine صاحب مشخص دارد؛ Stop همیشه با cleanup معکوس همراه است.</li><li>صف‌های bounded با سیاست سرریز صریح در همه‌جا.</li><li>سیاست ابهام mutation (عدم retry خودکار) در یک نقطه متمرکز (Runner) اعمال می‌شود.</li></ul>
+<h3>۳.۳ نقاط ضعف شناسایی‌شده</h3>
+<ul><li><code class="ltr">StreamAccountEvents</code> در v1 با polling (۲ ثانیه) پیاده شده است، نه push ترنزیشنی — محدودیت مستند شده و در S5 جایگزین خواهد شد.</li><li><code class="ltr">ListDialogs</code> توکن ادامه‌ی خود را روی top_message میسازد (مستند)؛ صفحه‌بندی عمیق‌تر نیازمند offset-peer است.</li><li>single-replica: مالکیت توزیع‌شده (lease + fencing) طراحی شده ولی پیاده نشده (ADR-0002/0007).</li></ul>
+</section>
+<section id="sec4">
+<h2>۴. بررسی وفاداری به SDK مرجع (بخش کلیدی)</h2>
+<p>SDK دارای <strong>۷۳ متد Client</strong> عمومی است (صحه‌سنجی مجدد با go doc در همین ممیزی). سرویس ۹ سرویس gRPC را عرضه می‌کند. ماتریس کامل انطباق (۳۳ ردیف) در فایل شواهد <code class="ltr">sdk-conformance-matrix.csv</code> موجود است. خلاصه طبقه‌بندی:</p>
+<table><tr><th>طبقه‌بندی</th><th>تعداد</th><th>توضیح</th></tr>
+<tr><td><span class="badge b-ok">FAITHFUL</span></td><td>۱۵</td><td>Send/Edit/Delete/Forward/Pin/Unpin/MarkAsRead/Search/StreamHistory/GetMe/ResolvePeer/CatchUp و …</td></tr>
+<tr><td><span class="badge b-ok">FAITHFUL_WITH_DOCUMENTED_ADAPTATION</span></td><td>۹</td><td>SendCode/SubmitCode (احراز هویت phone در RPC)، GetMessages (بازسازی روی Invoke عمومی)، ListDialogs (توکن)، Session blob، UpdateService (at-most-once)، Media، BindAccount</td></tr>
+<tr><td><span class="badge b-warn">PARTIALLY_FAITHFUL</span></td><td>۱</td><td>SessionService.ImportSession (مسیر string-session آداپتور باقی است → UNSUPPORTED صریح)</td></tr>
+<tr><td><span class="badge b-info">NOT_EXPOSED</span></td><td>۱</td><td>SDK Invoke خام (ADR-0003)</td></tr>
+<tr><td><span class="badge b-block">UNSUPPORTED</span></td><td>۲</td><td>Reactions/… (دامنه) و Drafts (schema-blocked)</td></tr>
+</table>
+<h3>۴.۱ یافته‌ی مهم: نقص ترتیب state کانال‌ها (اصلاح‌شده)</h3>
+<div class="failbox"><strong>یافته AUD-01:</strong> <code class="ltr">marshalSession</code> از <code class="ltr">ChannelUpdateStates()</code> SDK استفاده می‌کرد که ترتیب map-iteration تصادفی دارد؛ در نتیجه blob خروجی بین فراخوانی‌ها ناپایدار بود و round-trip بایت‌سطح ممکن نبود. <strong>اصلاح:</strong> مرتب‌سازی بر اساس ChannelID پیش از serialization + تست conformance با مقایسه‌ی order-independent. <strong>شواهد:</strong> <code class="ltr">TestSessionBlob_ExportImportSymmetry</code> (حالا سبز، اجرای ×۵).</div>
+<h3>۴.۲ انطباق نشست (Session)</h3>
+<p>فرمت blob سرویس (JSON v1: کلید/DC/پرچم احراز/update-frontier/کانال‌ها) با یک نشست واقعی SDK (ساخته‌شده با <code class="ltr">sdksession.NewWithKey</code> + SetDC + SetAuthorized + SetUpdateState + دو کانال) round-trip شد: کلید (KeyID + بایت‌ها)، DC، پرچم، frontier و کانال‌ها همه حفظ شدند. رفتار پس از <code class="ltr">SetUnauthorized</code> (لغو احراز) نیز صحه‌سنجی شد: کلید می‌ماند، پرچم authorized پاک می‌شود — دقیقاً مطابق معناشناسی SDK. ورودی‌های خراب (۵ حالت) همگی با <code class="ltr">ErrCrypto</code> fail-closed می‌شوند.</p>
+<p><strong>محدودیت:</strong> «بازیابی واقعی نشست در برابر سرور» به حساب واقعی نیاز دارد و <span class="badge b-block">BLOCKED_NO_LIVE_ACCOUNT</span> است.</p>
+<h3>۴.۳ جدول انطباق RPC‌های مهم</h3>
+<table><tr><th>RPC</th><th>Use case</th><th>Adapter → SDK</th><th>طبقه‌بندی</th><th>تست</th><th>نیاز live</th></tr>
+<tr><td>SendCode</td><td>Auth.SendCode</td><td>ClientSession.SendCode → SDK SendCode</td><td>FAITHFUL_ADAPT</td><td>grpc+unit</td><td>بله</td></tr>
+<tr><td>SubmitCode/SubmitPassword</td><td>Auth.SubmitCode/Password</td><td>ClientSession.Submit* → SDK SignIn/CheckPassword</td><td>FAITHFUL_ADAPT</td><td>grpc+unit</td><td>بله</td></tr>
+<tr><td>Connect/Disconnect</td><td>Runner.SetDesired</td><td>ClientSession.Connect/Disconnect → SDK</td><td>FAITHFUL</td><td>unit+grpc</td><td>بله</td></tr>
+<tr><td>GetMe/ResolvePeer</td><td>runner.Read</td><td>ClientSession.GetMe/ResolvePeer → SDK</td><td>FAITHFUL</td><td>grpc</td><td>بله</td></tr>
+<tr><td>GetUser/Channel/Chat (FULL)</td><td>runner.Read</td><td>ClientSession.PeerDetails → SDK</td><td>FAITHFUL</td><td>grpc</td><td>بله</td></tr>
+<tr><td>ListDialogs</td><td>runner.Read</td><td>ClientSession.ListDialogs → SDK GetDialogs</td><td>FAITHFUL_ADAPT</td><td>grpc</td><td>بله</td></tr>
+<tr><td>SendMessage</td><td>runner.Mutate</td><td>ClientSession.SendMessage → SDK SendMessageOpts</td><td>FAITHFUL</td><td>grpc</td><td>بله</td></tr>
+<tr><td>GetMessages</td><td>runner.Read</td><td>adapter Invoke → SDK messages/channels.getMessages</td><td>FAITHFUL_ADAPT</td><td>unit</td><td>بله</td></tr>
+<tr><td>Edit/Delete/Forward/Pin/Unpin/MarkAsRead</td><td>runner.Mutate</td><td>ClientSession.* → SDK</td><td>FAITHFUL</td><td>grpc</td><td>بله</td></tr>
+<tr><td>SearchMessages</td><td>runner.Read</td><td>ClientSession.SearchMessages → SDK</td><td>FAITHFUL</td><td>grpc</td><td>بله</td></tr>
+<tr><td>StreamHistory</td><td>runner.Read</td><td>ClientSession.StreamHistory → SDK IterMessages</td><td>FAITHFUL</td><td>grpc</td><td>بله</td></tr>
+<tr><td>StreamUpdates</td><td>runner.Subscribe</td><td>ClientSession.SubscribeUpdates → SDK OnUpdate</td><td>FAITHFUL_ADAPT</td><td>grpc+unit</td><td>بله</td></tr>
+<tr><td>UploadMedia/DownloadMedia</td><td>runner.Mutate/Read</td><td>ClientSession.Upload/DownloadMedia → SDK (O(part)/O(chunk))</td><td>FAITHFUL</td><td>grpc</td><td>بله</td></tr>
+<tr><td>Session blob round-trip</td><td>vault+repo</td><td>upstream marshal/unmarshal → SDK session</td><td>FAITHFUL (پس از اصلاح AUD-01)</td><td>conformance ×5</td><td>بخشی</td></tr>
+<tr><td>ImportSession</td><td>UNSUPPORTED</td><td>—</td><td>PARTIALLY_FAITHFUL</td><td>grpc UNIMPLEMENTED</td><td>بله</td></tr>
+</table>
+<p>ماتریس کامل (۳۳ ردیف با همه‌ی ۷۳ متد SDK) در <code class="ltr">docs/audit/evidence/sdk-conformance-matrix.csv</code>.</p>
+</section>
+<section id="sec5">
+<h2>۵. تحلیل Protocol Buffers و gRPC</h2>
+<ul><li><strong>لینت:</strong> <code class="ltr">buf lint</code> پاک (STANDARD منهای دو قاعده‌ی نام‌گذاری streaming — موندокумент در buf.yaml).</li><li><strong> drift:</strong> <code class="ltr">buf generate</code> + مقایسه با <code class="ltr">gen/</code> — پاک (تکرارشونده).</li><li><strong>ids:</strong> message_id به‌صورت رشته‌ی اعشاری (مصون از JS unsafe integer)؛ تست <code class="ltr">TestFormatID_DecimalStrings</code> عدد ۲⁵³+۱ را pin می‌کند.</li><li><strong>ErrorInfo:</strong> ۱۷ reason پایدار؛ جدول کامل در <code class="ltr">error-mapping-matrix.csv</code>.</li><li><strong>health</strong> بدون احراز هویت (فقط SERVING) — تست شده؛ reflection پیش‌فرض خاموش.</li><li><strong>deadline:</strong> تعلق و پیش‌нять caller deadline تست شده (<code class="ltr">TestDeadline_CallerDeadlineWins</code>).</li></ul>
+</section>
+<section id="sec6">
+<h2>۶. تحلیل AccountRunner و Concurrency</h2>
+<ul><li><strong>mutation queue</strong> با عمق پیکربندی‌پذیر (پیش‌فرض ۶۴) و reject صریح (<code class="ltr">ErrTooManyRequests</code>) — تست اشباع: ۱۰/۱۰ submit در حالت اشباع رد شد.</li><li><strong>pump</strong> تک‌نخی: تست ۲۰۰ mutation — بیشینه‌ی هم‌زمانی = ۱ (سریال‌سازی صحه‌سنجی شد) و ترتیب حفظ شد.</li><li><strong>reads</strong> هم‌زمان با semaphore — تست: بیشینه‌ی هم‌زمانی ≥ ۲.</li><li><strong>hub</strong>: publish بدون allocation، دنباله‌ی per-stream یکنوا، subscriber کند drop می‌شود (تست‌شده)، ۵ مشترک هم‌زمان همه‌ی event ها را گرفتند.</li><li><strong>goroutine leak</strong>: بعد از churn (۸×۲۵ subscribe/unsubscribe) شمارش به baseline برگشت.</li><li><strong>race detector</strong>: <code class="ltr">-race</code> روی همه‌ی پکیج‌های سرویس سبز.</li></ul>
+</section>
+<section id="sec7">
+<h2>۷. تحلیل Authentication و Multi-Tenancy</h2>
+<ul><li>کلید API به‌صورت SHA-256 hash + prefix ذخیره می‌شود؛ مقایسه‌ی candidates با زمان ثابت.</li><li>AuthN/AuthZ interceptor ها: تست‌شده (missing key، bad key، missing permission → PermissionDenied؛ health معاف).</li><li> Tenant scoping دو لایه‌ای: interceptor + باز-بررسی مالکیت در use case (تست <code class="ltr">TestManager_TenantScopedGet</code> و تست DB).</li><li> تلفن فقط به‌صورت HMAC-hash + mask ذخیره می‌شود؛ فراخوانی‌های auth باید phone را دوباره بفرستند و با hash مقایسه می‌شود (تست‌شده).</li></ul>
+</section>
+<section id="sec8">
+<h2>۸. تحلیل Session Security و Cryptography</h2>
+<p>فرمت: <code class="ltr">SMB1 ‖ kek_ver ‖ wrapped_dek ‖ nonce ‖ ciphertext</code> — AES-256-GCM، DEK ۳۲بایتی per-session، KEK از provider. تست‌ها: round-trip بدون plaintext-leak، دودست‌گیری در ۳ موقعیت تامپر، کلید اشتباه، rotation (ReWrap)، provider errors، KMS fail-closed. شredding با حذف ردیف (wrapped DEK همراه ردیف حذف می‌شود).</p>
+<div class="warnbox"><strong>تفکیک مهم:</strong> کنترل‌های پیاده‌شده (GCM auth، version binding، rotation) با مفروضات تأییدنشده (امن‌بودن فایل KEK در دیسک، مقاومت KMS واقعی) تفکیک شده‌اند. KMS با تصمیم مالک باقی است و fail-closed می‌شود.</div>
+</section>
+<section id="sec9">
+<h2>۹. تحلیل PostgreSQL و Data Integrity</h2>
+<ul><li>Migration 0001: tenants/credentials/accounts/sessions/operations/audit + FK/CHECK/unique (شامل unique سراسری روی phone_hash — یک حساب فقط یک tenant).</li><li>Migrations در <code class="ltr">schema_migrations</code> ثبت و idempotent اند.</li><li>کوئری‌ها همگی tenant-scoped؛ اسکن تست‌های intégration (۶ تست) در CI با postgres service container اجرا می‌شود؛ در این محیط با پیام صریح <span class="badge b-block">BLOCKED_ENVIRONMENT</span> شدند.</li><li>هیچ transaction ای هنگام فراخوانی upstream باز نمی‌ماند (Claim/Finish دو فراخوانی جدا هستند).</li></ul>
+</section>
+<section id="sec10">
+<h2>۱۰. تحلیل Messaging، Media و Updates</h2>
+<ul><li><strong>Messaging:</strong> idempotency از طریق operations + fingerprint (تعارض کلید/فینگرپرینت تست‌شده در سطح DB)؛ ابهام mutation با <code class="ltr">OPERATION_AMBIGUOUS</code> صادقانه گزارش می‌شود.</li><li><strong>Media:</strong> client-streaming با قرارداد metadata-first، enforce سایز (۰، سقف ۲GiB)، chunk ≤ ۲۵۶KiB، discard partial؛ server-streaming download با clamp سایز chunk. تست‌ها همگی از طریق سرور واقعی in-process اجرا شدند.</li><li><strong>Updates:</strong> at-most-once per stream (مستند)، دنباله‌ی یکنوا تست‌شده، slow-consumer drop تست‌شده، لغو تمیز تست‌شده. دنباله‌ی حساب از طریق state پایدار SDK حفظ می‌شود.</li></ul>
+</section>
+<section id="sec11">
+<h2>۱۱. تحلیل Error Handling و Idempotency</h2>
+<p>جدول کامل مپ (۲۲ ردیف) در <code class="ltr">error-mapping-matrix.csv</code>. تست جدولی <code class="ltr">TestTranslate_ErrorMappingTable</code> تمام نگاشت‌ها را با خطاهای واقعی SDK (ساخته‌شده به‌صورت typed) صحه‌سنجی می‌کند؛ شامل حفظ تعداد ثانیه‌های FLOOD_WAIT. قاعده‌ی طلایی حفظ شده: connection loss در mutation = <code class="ltr">OPERATION_AMBIGUOUS</code> و <strong>هرگز</strong> retry خودکار.</p>
+</section>
+<section id="sec12">
+<h2>۱۲. تحلیل Performance و Resource Management</h2>
+<pre><code>BenchmarkMutationDispatch-20   3,451,788   702.1 ns/op   144 B/op    3 allocs/op
+BenchmarkReadDispatch-20      31,127,516    67.38 ns/op     0 B/op      0 allocs/op
+BenchmarkUpdateHubPublish-20  37,093,707    65.39 ns/op     0 B/op      0 allocs/op</code></pre>
+<p>محیط: Go 1.26.3، windows/amd64، ۲۰ هسته. تفسیر: dispatch حسابی سبک است (ns-scale)؛ publishes بدون allocation؛ گلوگاه واقعی network/upstream خواهد بود نه این لایه‌ها. بنچمارک‌های persistence/media به postgres واقعی و حساب live نیاز دارند → <span class="badge b-block">BLOCKED_ENVIRONMENT</span>/<span class="badge b-block">BLOCKED_NO_LIVE_ACCOUNT</span>.</p>
+</section>
+<section id="sec13">
+<h2>۱۳. تحلیل Security و Threat Model</h2>
+<p>۱۴ یافته در <code class="ltr">security-findings.csv</code>: ۹ CONTROL (کنترل فعال+تست)، ۲ OPEN-owner (KMS، multi-replica fencing)، ۱ OPEN-blocked (live validation)، ۱ accepted (health بدون authn)، ۱ LOW. شدت بحرانی/بالا بدون باز باز اصلاح شدند. تست‌های خصمانه: cross-tenant (هر دو لایه)، enumeration resistance، key-shape validation، tamper resistance.</p>
+</section>
+<section id="sec14">
+<h2>۱۴. گزارش جامع تست‌ها</h2>
+<table><tr><th>وضعیت</th><th>تعداد</th><th>توضیح</th></tr>
+<tr><td><span class="badge b-ok">PASS</span></td><td>۶۲</td><td>تست‌های اجراشده با شواهد (جدول کامل در test-matrix.csv)</td></tr>
+<tr><td><span class="badge b-fail">FAIL</span></td><td>۰</td><td>—</td></tr>
+<tr><td><span class="badge b-block">BLOCKED_ENVIRONMENT</span></td><td>۶</td><td>تست‌های persistence با postgres واقعی (CI اجرا می‌کند)</td></tr>
+<tr><td><span class="badge b-block">BLOCKED_NO_LIVE_ACCOUNT</span></td><td>۵</td><td>سناریوهای live مستند در بخش ۱۵</td></tr>
+<tr><td><span class="badge b-info">NOT_APPLICABLE</span></td><td>—</td><td>قابلیت‌های خارج از دامنه (بخش ۴)</td></tr>
+</table>
+<p>دستورهای دقیق اجرا و خروجی‌ها: <code class="ltr">docs/audit/evidence/command-results.md</code> (۸۳ خط PASS/ok ثبت‌شده از اجرای واقعی).</p>
+</section>
+<section id="sec15">
+<h2>۱۵. تست‌های نیازمند حساب واقعی</h2>
+<table><tr><th>سناریو</th><th>چرا آفلاین کافی نیست</th><th>وضعیت</th></tr>
+<tr><td>SendCode + SubmitCode + 2FA با سرور واقعی</td><td>تنها سرور واقعی کد می‌فرستد و state را تأیید می‌کند</td><td><span class='badge b-block'>BLOCKED_NO_LIVE_ACCOUNT</span></td></tr>
+<tr><td>بازیابی نشست واقعی (بدون re-auth)</td><td>فقط سرور واقعی صحت کلید/پرچم را می‌پذیرد</td><td><span class='badge b-block'>BLOCKED_NO_LIVE_ACCOUNT</span></td></tr>
+<tr><td>ارسال/ویرایش/حذف پیام واقعی</td><td>نتیجه‌ی upstream و echo updates فقط از سرور می‌آید</td><td><span class='badge b-block'>BLOCKED_NO_LIVE_ACCOUNT</span></td></tr>
+<tr><td>Upload/Download واقعی + SHA-256</td><td>سرور واقعی part-limits و file-reference صادر می‌کند</td><td><span class='badge b-block'>BLOCKED_NO_LIVE_ACCOUNT</span></td></tr>
+<tr><td>دریافت update واقعی و CatchUp</td><td>سرور واقعی pts/qts و difference واقعی تولید می‌کند</td><td><span class='badge b-block'>BLOCKED_NO_LIVE_ACCOUNT</span></td></tr>
+<tr><td>FLOOD_WAIT واقعی</td><td>رفتار rate-limit سرور قابل شبیه‌سازی قطعی نیست</td><td><span class='badge b-block'>BLOCKED_NO_LIVE_ACCOUNT</span></td></tr>
+</table>
+<p>رویکرد امن (runbook فاز ۲۶/۲۲): فقط با مجوز صریح مالک، یک connection، یک RPC اول، توقف فوری در خطا، OTP فقط پس از موفقیت initialize.</p>
+</section>
+<section id="sec16">
+<h2>۱۶. مشکلات و انحرافات معماری</h2>
+<ul><li><strong>اصلاح‌شده:</strong> AUD-01 (ترتیب channel states در blob) — نقص واقعی آداپتور، تست conformance کشف کرد.</li><li><strong>اصلاح‌شده:</strong> نشت کلید dev در docker-compose (حذف؛ الزام env).</li><li><strong>انحراف مستند:</strong> StreamAccountEvents با polling در v1؛ ListDialogs token فقط offset-ID؛ ImportSession → UNSUPPORTED فعلی.</li><li><strong>Debt:</strong> lease/fencing برای multi-replica (طراحی موجود، پیاده‌سازی S آینده)؛ OTLP export wiring (S عملیاتی).</li></ul>
+</section>
+<section id="sec17">
+<h2>۱۷. اصلاحات انجام‌شده در طول ممیزی</h2>
+<table><tr><th>#</th><th>مشکل</th><th>ریشه</th><th>فایل</th><th>تست</th><th>نتیجه</th></tr>
+<tr><td>AUD-01</td><td>ترتیب ناپایدار channel states در session blob</td><td>map-iteration در SDK</td><td>internal/infrastructure/upstream/factory.go</td><td>TestSessionBlob_ExportImportSymmetry</td><td>سبز ×۵</td></tr>
+<tr><td>AUD-02</td><td>نشت کلید dev در compose</td><td>کمیته‌ی مقدار ثابت</td><td>service/deploy/docker-compose.yml</td><td>secret scan</td><td>۰ hit</td></tr>
+<tr><td>AUD-03</td><td>health پشت authn (خلاف قرارداد)</td><td> interceptor عمومی</td><td>internal/grpcapi/interceptors</td><td>TestHealth_ServedWithoutCredentials</td><td>سبز</td></tr>
+</table>
+</section>
+<section id="sec18">
+<h2>۱۸. محدودیت‌ها و ریسک‌های باقی‌مانده</h2>
+<ul><li>Live validation: همه‌ی جریان‌های احراز/پیام/رسانه در برابر سرویس واقعی صحه‌سنجی نشده‌اند.</li><li>KMS: پیاده‌سازی نیازمند تصمیم مالک؛ فعلاً fail-closed.</li><li>Single-replica: بدون lease/fencing، مقیاس افقی امن نیست (مستند).</li><li>ImportSession: مسیر string-session در آداپتور باقی است.</li><li>OTLP export: wiring عملیاتی باقی است (logger/metrics داخلی فعال‌اند).</li></ul>
+</section>
+<section id="sec19">
+<h2>۱۹. برنامه پیشنهادی Production Qualification</h2>
+<ol><li>تصمیم KMS + پیاده‌سازی KeyProvider تولیدی (S4-باقی).</li><li>اجرای runbook live با حساب آزمایشی (اتصال → auth → نشست → پیام → رسانه → streaming).</li><li>اجرای integration suite با postgres واقعی در CI (آماده).</li><li>حذف replace و انتشار ماژول SDK (release policy فعال).</li><li>OTLP wiring + runbook عملیاتی (S8).</li><li>باز-اجرای کامل دروازه‌های release (مستند در release-process.md).</li></ol>
+</section>
+<section id="sec20">
+<h2>۲۰. نتیجه‌گیری نهایی</h2>
+<div class="verdict">SDK CONFORMANCE VERIFIED WITH DOCUMENTED ADAPTATIONS</div>
+<table class="meta">
+<tr><td>آمادگی تست خودکار</td><td><span class='badge b-ok'>آماده</span> — ۶۲ PASS آفلاین + race</td></tr>
+<tr><td>آمادگی Live Integration</td><td><span class='badge b-block'>BLOCKED</span> — نیاز به حساب واقعی (runbook آماده)</td></tr>
+<tr><td>آمادگی Security</td><td><span class='badge b-ok'>کنترل‌های کلیدی فعال</span> — KMS open (owner)</td></tr>
+<tr><td>آمادگی Production Deployment</td><td><span class='badge b-warn'>PARTIAL</span> — artifacts کامل؛ live + KMS + publication باقی</td></tr>
+</table>
+<p>تفکیک صریح: رفتار SDK و سرویس در دامنه آفلاین با شواهد قابل‌بازتولید صحه‌سنجی شد؛ رفتار upstream در برابر سرویس واقعی تحقیق نشده و هیچ ادعایی درباره‌ی آن وجود ندارد.</p>
+</section>
+</div>
+<footer>SuroMesh Service Audit — تولیدشده در فاز ۲۶ · همه‌ی شواهد در docs/audit/evidence/ · بدون تماس با سرویس واقعی</footer>
+</body></html>

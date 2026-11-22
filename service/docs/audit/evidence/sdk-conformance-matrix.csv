@@ -1,0 +1,34 @@
+service_capability,use_case,adapter_method,sdk_capability,classification,test_evidence,live_validation_required
+AuthenticationService.SendCode,SendCode use case,ClientSession.SendCode,SDK SendCode (auth.sendCode),FAITHFUL_WITH_DOCUMENTED_ADAPTATION,grpc server tests; phone verified against binding hash,yes
+AuthenticationService.SubmitCode,SubmitCode use case,ClientSession.SubmitCode,SDK SignIn,FAITHFUL_WITH_DOCUMENTED_ADAPTATION,grpc server tests,yes
+AuthenticationService.SubmitPassword,SubmitPassword use case,ClientSession.SubmitPassword,SDK CheckPassword (SRP),FAITHFUL_WITH_DOCUMENTED_ADAPTATION,grpc server tests,yes
+AuthenticationService.LogOut,LogOut use case,ClientSession.LogOut,SDK LogOut,FAITHFUL,grpc server tests,yes
+AccountService.BindAccount,AccountService.Bind,AccountRepo.Create (tenant-scoped),service-owned (no SDK binding API),FAITHFUL_WITH_DOCUMENTED_ADAPTATION,grpc + persistence tests,no
+SessionService.ImportSession,sessionOps.Import,UNSUPPORTED (adapter string-session path pending),SDK ParseStringSession exists,PARTIALLY_FAITHFUL,handler returns UNSUPPORTED,no
+ConnectionService.Connect/Disconnect,Runner.SetDesired,ClientSession.Connect/Disconnect,SDK Connect/Disconnect,FAITHFUL,unit + grpc,yes (async contract)
+UserService.GetMe,runner.Read,ClientSession.GetMe,SDK GetMe,FAITHFUL_WITH_DOCUMENTED_ADAPTATION,grpc tests,yes
+UserService.ResolvePeer,runner.Read,ClientSession.ResolvePeer,SDK resolve cascade,FAITHFUL,grpc tests,yes
+UserService.GetUser/Channel/Chat,runner.Read,ClientSession.PeerDetails,SDK GetUser/GetChannel/GetChat (+FULL),FAITHFUL,grpc tests,yes
+DialogService.ListDialogs,runner.Read,ClientSession.ListDialogs,SDK GetDialogs (offset-token paging),FAITHFUL_WITH_DOCUMENTED_ADAPTATION,grpc tests (page-token codec),yes
+MessagingService.SendMessage,runner.Mutate,ClientSession.SendMessage,SDK SendMessageOpts (random_id generated),FAITHFUL,grpc tests,yes
+MessagingService.GetMessages,runner.Read,adapter Invoke (messages/channels.getMessages),SDK public Invoke path,FAITHFUL_WITH_DOCUMENTED_ADAPTATION,unit (missing ids explicit),yes
+MessagingService.EditMessage,runner.Mutate,ClientSession.EditMessage,SDK EditMessage,FAITHFUL,grpc tests,yes
+MessagingService.DeleteMessages,runner.Mutate,ClientSession.DeleteMessages,SDK DeleteMessages,FAITHFUL,grpc tests,yes
+MessagingService.ForwardMessages,runner.Mutate,ClientSession.ForwardMessages,SDK ForwardMessages,FAITHFUL,grpc tests,yes
+MessagingService.Pin/Unpin,runner.Mutate,ClientSession.Pin/Unpin,SDK PinMessage/UnpinMessage,FAITHFUL,grpc tests,yes
+MessagingService.MarkAsRead,runner.Mutate,ClientSession.MarkAsRead,SDK MarkAsRead,FAITHFUL,grpc tests,yes
+MessagingService.SearchMessages,runner.Read,ClientSession.SearchMessages,SDK SearchMessages,FAITHFUL,grpc tests,yes
+MessagingService.StreamHistory,runner.Read,ClientSession.StreamHistory,SDK IterMessages,FAITHFUL,grpc contract tests,yes
+UpdateService.StreamUpdates,runner.Subscribe,ClientSession.SubscribeUpdates,"SDK OnUpdate (exactly-once, MessageBox order)",FAITHFUL_WITH_DOCUMENTED_ADAPTATION,grpc streaming tests,yes (at-most-once per stream)
+UpdateService.CatchUp,runner op,ClientSession.CatchUp,SDK CatchUp,FAITHFUL,unit,yes
+MediaService.UploadMedia,runner.Mutate,ClientSession.UploadMedia,SDK Upload+SendMediaInput/SendMedia (O(part) memory),FAITHFUL,grpc media tests,yes
+MediaService.DownloadMedia,runner.Read,ClientSession.DownloadMedia,SDK DownloadMedia (O(chunk)),FAITHFUL,grpc media tests,yes
+MediaService.GetMediaMetadata,runner.Read,getMediaForDownload,SDK GetMessages + classify,FAITHFUL,unit,yes
+Raw MTProto Invoke,NOT_EXPOSED,(adapter uses Invoke internally),SDK Invoke,NOT_EXPOSED,ADR-0003,no
+Session blob export/import,SessionRepository + vault,upstream marshal/unmarshal,SDK session getters/setters,FAITHFUL_WITH_DOCUMENTED_ADAPTATION,conformance symmetry tests,partially (real restore = live)
+Peer resolution cascade,ResolvePeer use case,adapter ResolvePeer,SDK resolve cascade,FAITHFUL,grpc tests,yes
+Never fabricate access hashes,domain invariant,adapter (no hash synthesis),SDK invariant,FAITHFUL,grpc tests (NOT_FOUND),yes
+UTF-16 entity offsets,domain + convert,convertMessage/convertWireEntity,SDK TextEntity (UTF-16),FAITHFUL,conformance tests,yes
+Media classification,convertMedia,SDK Media domain types,SDK canonical classification,FAITHFUL_WITH_DOCUMENTED_ADAPTATION,conformance tests,yes
+Reactions/participants/folders/invite links/payments/stories/bots,UNSUPPORTED,UNSUPPORTED (ADR scope),SDK does not implement,UNSUPPORTED,grpc UNIMPLEMENTED family,no
+Drafts,UNSUPPORTED,BLOCKED_BY_UPSTREAM (schema lacks draft RPCs),SDK does not implement,UNSUPPORTED,documented,no

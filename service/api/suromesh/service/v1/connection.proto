@@ -1,0 +1,50 @@
+// ConnectionService: upstream connection lifecycle.
+//
+// Connect is ASYNCHRONOUS by design: the upstream handshake (WebSocket +
+// obfuscated2 + DH key exchange + initialization) can take tens of
+// seconds. The RPC accepts the desired state and returns immediately;
+// progress is observed via GetConnectionState and StreamAccountEvents.
+
+syntax = "proto3";
+
+package suromesh.service.v1;
+
+import "suromesh/service/v1/common.proto";
+
+option go_package = "github.com/Skryldev/suromesh/service/gen/suromesh/service/v1;servicev1";
+
+service ConnectionService {
+  // Sets desired state to RUNNING. Returns the observation snapshot at
+  // acceptance time; convergence is observed asynchronously. Requires
+  // the account to hold usable session material (authorized or ready to
+  // authenticate).
+  rpc Connect(ConnectRequest) returns (ConnectResponse);
+
+  // Sets desired state to STOPPED (graceful; reconnectable). The
+  // account's session material is preserved.
+  rpc Disconnect(DisconnectRequest) returns (DisconnectResponse);
+
+  // Returns the current desired/observed snapshot.
+  rpc GetConnectionState(GetConnectionStateRequest) returns (GetConnectionStateResponse);
+}
+
+message ConnectRequest {
+  string account_id = 1;
+}
+message ConnectResponse {
+  ConnectionObservation observed = 1;
+}
+
+message DisconnectRequest {
+  string account_id = 1;
+}
+message DisconnectResponse {
+  ConnectionObservation observed = 1;
+}
+
+message GetConnectionStateRequest {
+  string account_id = 1;
+}
+message GetConnectionStateResponse {
+  ConnectionObservation observed = 1;
+}

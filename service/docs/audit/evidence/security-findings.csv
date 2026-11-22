@@ -1,0 +1,15 @@
+id,title,severity,component,evidence,impact,verification,status,notes
+SEC-01,API keys stored as SHA-256 hash + prefix; constant-time candidate compare,MEDIUM (mitigated),grpcapi/interceptors,auth.go hashKey/constantTimeHexEqual,DB theft does not reveal raw keys,code review + tests,none open,CONTROL
+SEC-02,Phone numbers stored only as HMAC lookup hash + masked display,MEDIUM (mitigated),application + persistence,mask/derive functions + tests,DB compromise does not reveal phones,code review,none open,CONTROL
+SEC-03,"Session blobs envelope-encrypted (per-session DEK, external KEK)",HIGH (mitigated),infrastructure/cryptography,envelope tests: tamper/wrong-key/rotation,DB compromise does not yield usable sessions,tests green,none open,CONTROL
+SEC-04,KMS provider fails closed (no silent file fallback),HIGH (control),config validation,TestLoad_KMSProviderFailsClosed,production requires vendor decision,config test green,owner decision pending,OPEN (owner)
+SEC-05,Cross-tenant access returns NOT_FOUND (no existence oracle),HIGH (mitigated),persistence + manager + grpc,TestManager_TenantScopedGet; DB scoping test,enumeration resistance verified,tests green,none open,CONTROL
+SEC-06,Reflection disabled by default; dev-only opt-in,LOW (control),grpcapi/server,server.New cfg.Reflection,reflection exposure avoided,code review,none open,CONTROL
+SEC-07,Health service exempt from authn (status only),LOW (accepted),interceptors auth.go healthPrefixes,TestHealth_ServedWithoutCredentials,no data beyond SERVING,test green,accepted,CONTROL
+SEC-08,Bootstrap key via env; never logged (redaction registry),MEDIUM (mitigated),cmd wiring + logging,redactor registry test,env leak only,tests green,none open,CONTROL
+SEC-09,OTP/2FA secrets single-RPC lifetime; never persisted,HIGH (mitigated),auth service design,auth_service.go + audit trail,no storage path exists,code review,none open,CONTROL
+SEC-10,Idempotency key reuse with different fingerprint = conflict,MEDIUM (mitigated),persistence Claim + tests,TestPersistence_IdempotencyClaimAndRace,prevents silent divergent replay,DB test (CI),none open,CONTROL
+SEC-11,"Media upload: metadata-first contract, size enforcement, chunk clamp",MEDIUM (mitigated),handlers/media.go,TestMediaUpload_* tests,resource exhaustion bounded,tests green,none open,CONTROL
+SEC-12,Single-replica ownership: no distributed fencing yet,HIGH (documented limitation),ADR-0002/0007,deployment Recreate strategy,multi-replica unsafe until leases ship,documented,owner decision,OPEN (design)
+SEC-13,Panic recovery returns generic Internal (no leak),LOW (control),interceptors Recovery,recovery interceptor,no stack/payload to client,code review,none open,CONTROL
+SEC-14,Live Soroush Plus validation absent — upstream behavior unverified,HIGH (documented),whole upstream path,Phase 18/26 live-runbook docs,production qualification blocked,documented,credentials required,OPEN (blocked)

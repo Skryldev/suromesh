@@ -1,0 +1,106 @@
+// UserService: self identity, peer resolution, metadata refresh.
+//
+// The upstream never fabricates access hashes: resolving a bare peer id
+// without cached server-provided material fails with
+// FAILED_PRECONDITION / PEER_MATERIAL_UNAVAILABLE rather than inventing
+// one. Entities learned from any server response are cached per account.
+
+syntax = "proto3";
+
+package suromesh.service.v1;
+
+import "suromesh/service/v1/common.proto";
+
+option go_package = "github.com/Skryldev/suromesh/service/gen/suromesh/service/v1;servicev1";
+
+service UserService {
+  // The bound account's own identity (also seeds the account's entity
+  // cache so SelfRef/self-scope operations work).
+  rpc GetMe(GetMeRequest) returns (GetMeResponse);
+
+  // Resolves a peer reference to a canonical peer (cascade: self →
+  // username → cached material → marked id).
+  rpc ResolvePeer(ResolvePeerRequest) returns (ResolvePeerResponse);
+
+  // User metadata refresh. View BASIC returns the cached/refreshed user;
+  // FULL adds profile details from the full-info upstream query.
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+
+  // Channel metadata refresh (BASIC/FULL).
+  rpc GetChannel(GetChannelRequest) returns (GetChannelResponse);
+
+  // Chat metadata refresh. Note: basic chats have no lightweight
+  // metadata-refresh upstream RPC in Layer 182; BASIC is cache-derived
+  // and FULL performs the full-chat upstream query.
+  rpc GetChat(GetChatRequest) returns (GetChatResponse);
+}
+
+message GetMeRequest {
+  string account_id = 1;
+}
+message GetMeResponse {
+  Peer peer = 1;
+}
+
+message ResolvePeerRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+}
+message ResolvePeerResponse {
+  Peer peer = 1;
+}
+
+enum PeerView {
+  PEER_VIEW_UNSPECIFIED = 0;
+  PEER_VIEW_BASIC = 1;
+  PEER_VIEW_FULL = 2;
+}
+
+message GetUserRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+  PeerView view = 3;
+}
+message GetUserResponse {
+  User user = 1;
+}
+
+message User {
+  string peer_id = 1;
+  string display_name = 2;
+  optional string username = 3;
+  // Derived from upstream flags; naming reflects protocol semantics.
+  bool is_bot = 4;
+}
+
+message GetChannelRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+  PeerView view = 3;
+}
+message GetChannelResponse {
+  Channel channel = 1;
+}
+
+message Channel {
+  string peer_id = 1;
+  string title = 2;
+  optional string username = 3;
+  // Present in FULL view when the server provides it; 0 otherwise.
+  int32 participants_count = 4;
+}
+
+message GetChatRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+  PeerView view = 3;
+}
+message GetChatResponse {
+  Chat chat = 1;
+}
+
+message Chat {
+  string peer_id = 1;
+  string title = 2;
+  int32 participants_count = 3;
+}

@@ -1,0 +1,89 @@
+// AuthenticationService: upstream account authentication flows.
+//
+// Security: the OTP and 2FA password exist ONLY inside their single RPC
+// (in-memory, TLS-protected); the service never logs, stores, caches, or
+// echoes them. SendCode is a rate-limited upstream operation — one call
+// per operator action; flood-waits surface as RESOURCE_EXHAUSTED with
+// retry information.
+//
+// Deadline: 60s default per auth RPC.
+
+syntax = "proto3";
+
+package suromesh.service.v1;
+
+import "suromesh/service/v1/common.proto";
+
+option go_package = "github.com/Skryldev/suromesh/service/gen/suromesh/service/v1;servicev1";
+
+service AuthenticationService {
+  // Requests an upstream authentication code for the account. Requires
+  // permission auth:write. Account must exist in the caller's tenant.
+  rpc SendCode(SendCodeRequest) returns (SendCodeResponse);
+
+  // Submits the OTP received by the account owner. When the account has
+  // 2FA enabled, the response state is PASSWORD_REQUIRED and the caller
+  // must invoke SubmitPassword next.
+  rpc SubmitCode(SubmitCodeRequest) returns (SubmitCodeResponse);
+
+  // Completes 2FA via the SRP check. The password is used in-memory only.
+  rpc SubmitPassword(SubmitPasswordRequest) returns (SubmitPasswordResponse);
+
+  // Returns the current authorization state of the account.
+  rpc GetAuthorizationState(GetAuthorizationStateRequest) returns (GetAuthorizationStateResponse);
+
+  // Logs the account out upstream (invalidates the session server-side;
+  // the stored session becomes unusable and the account returns to the
+  // re-authentication path).
+  rpc LogOut(LogOutRequest) returns (LogOutResponse);
+}
+
+message SendCodeRequest {
+  string account_id = 1; // tenant-scoped account UUID
+  // The bound account's phone (the service never stores raw phones, so
+  // auth RPCs carry it; it must match the binding's stored lookup hash).
+  string phone = 2;
+}
+message SendCodeResponse {
+  AuthorizationState state = 1;
+}
+
+message SubmitCodeRequest {
+  string account_id = 1;
+  // The bound account's phone (must match the binding).
+  string phone = 2;
+  // The OTP as received by the account owner. Used once, in-memory only.
+  string code = 3;
+  // Idempotency key: retries with the same key return the recorded
+  // outcome instead of re-submitting upstream.
+  string idempotency_key = 4;
+}
+message SubmitCodeResponse {
+  AuthorizationState state = 1;
+  // Set when authorization completed with this submission.
+  optional Account account = 2;
+}
+
+message SubmitPasswordRequest {
+  string account_id = 1;
+  // The 2FA password. In-memory for the duration of this RPC only.
+  string password = 2;
+}
+message SubmitPasswordResponse {
+  AuthorizationState state = 1;
+  optional Account account = 2;
+}
+
+message GetAuthorizationStateRequest {
+  string account_id = 1;
+}
+message GetAuthorizationStateResponse {
+  AuthorizationState state = 1;
+}
+
+message LogOutRequest {
+  string account_id = 1;
+}
+message LogOutResponse {
+  AuthorizationState state = 1;
+}

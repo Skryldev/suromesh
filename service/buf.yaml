@@ -1,0 +1,18 @@
+version: v2
+modules:
+  - path: api
+lint:
+  use:
+    - STANDARD
+  except:
+    - PACKAGE_VERSION_SUFFIX
+    # Streaming RPCs keep domain-meaningful item names (UpdateEvent,
+    # MessageEvent, DownloadChunk, UploadMediaRequest) instead of the
+    # buf-standard *Request/*Response naming — a deliberate, documented
+    # choice (mirrors Google AIP-135 streaming practice). Unary RPCs
+    # still follow the standard naming exactly.
+    - RPC_REQUEST_STANDARD_NAME
+    - RPC_RESPONSE_STANDARD_NAME
+breaking:
+  use:
+    - FILE

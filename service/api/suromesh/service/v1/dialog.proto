@@ -1,0 +1,42 @@
+// DialogService: the account's conversation list.
+//
+// Pagination is opaque-token based. total_estimate is the server-provided
+// estimate only (present when the upstream supplies one) — never an exact
+// count promise.
+
+syntax = "proto3";
+
+package suromesh.service.v1;
+
+import "google/protobuf/timestamp.proto";
+import "suromesh/service/v1/common.proto";
+
+option go_package = "github.com/Skryldev/suromesh/service/gen/suromesh/service/v1;servicev1";
+
+service DialogService {
+  // Lists the account's dialogs, most recent first. Page size default
+  // 50, max 100. Requires permission dialogs:read.
+  rpc ListDialogs(ListDialogsRequest) returns (ListDialogsResponse);
+}
+
+message ListDialogsRequest {
+  string account_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+message ListDialogsResponse {
+  repeated Dialog dialogs = 1;
+  optional string next_page_token = 2;
+  optional int32 total_estimate = 3;
+}
+
+message Dialog {
+  Peer peer = 1;
+  string top_message_id = 2;     // decimal int64 string
+  int32 unread_count = 3;
+  int32 unread_mentions_count = 4;
+  int64 read_inbox_max_id = 5;
+  int64 read_outbox_max_id = 6;
+  bool pinned = 7;
+  google.protobuf.Timestamp last_activity = 8;
+}

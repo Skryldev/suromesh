@@ -1,0 +1,110 @@
+# SuroMesh Service — Kubernetes manifests (Phase 25 master spec §17):
+# Deployment + Service + Secret placeholders. K8s is NOT required to run
+# the service (container-first per ADR-0013); these manifests are the
+# production template.
+#
+# Secrets are placeholders — inject real values via your secret manager.
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: suromesh-service-secrets
+type: Opaque
+stringData:
+  postgres-dsn: "postgres://suromesh:CHANGE_ME@postgres:5432/suromesh?sslmode=disable"
+  bootstrap-key: "sk_CHANGE_ME"
+  kek: "" # base64 of the 32-byte KEK; managed by your secret manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: suromesh-service
+  labels:
+    app: suromesh-service
+spec:
+  replicas: 1 # single-owner account runtime (ADR-0002); sharding later
+  strategy:
+    type: Recreate # account sessions are in-memory per pod
+  selector:
+    matchLabels:
+      app: suromesh-service
+  template:
+    metadata:
+      labels:
+        app: suromesh-service
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+      containers:
+        - name: service
+          image: ghcr.io/skryldev/suromesh-service:PLACEHOLDER
+          ports:
+            - containerPort: 50051
+              name: grpc
+          env:
+            - name: SUROMESH_LISTEN_ADDR
+              value: ":50051"
+            - name: SUROMESH_STORAGE_POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: suromesh-service-secrets
+                  key: postgres-dsn
+            - name: SUROMESH_CRYPTO_PROVIDER
+              value: "file"
+            - name: SUROMESH_CRYPTO_FILE_KEY
+              value: /var/run/secrets/suromesh/kek
+            - name: SUROMESH_AUTH_BOOTSTRAP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: suromesh-service-secrets
+                  key: bootstrap-key
+                  optional: true
+            - name: SUROMESH_LOG_FORMAT
+              value: "json"
+          volumeMounts:
+            - name: kek
+              mountPath: /var/run/secrets/suromesh
+              readOnly: true
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+          readinessProbe:
+            grpc:
+              port: 50051
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            grpc:
+              port: 50051
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+      volumes:
+        - name: kek
+          secret:
+            secretName: suromesh-service-secrets
+            items:
+              - key: kek
+                path: kek
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: suromesh-service
+spec:
+  selector:
+    app: suromesh-service
+  ports:
+    - port: 50051
+      targetPort: 50051
+      name: grpc

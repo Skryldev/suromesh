@@ -1,0 +1,91 @@
+// AccountService: tenant-scoped account binding lifecycle.
+//
+// Binding means creating the tenant↔account association in the service
+// (status PENDING_AUTH); authentication then proceeds through
+// AuthenticationService. The raw phone number is used to derive a keyed
+// lookup hash + masked display form; it is never stored raw and never
+// returned. Removal crypto-shreds the stored session material.
+
+syntax = "proto3";
+
+package suromesh.service.v1;
+
+import "suromesh/service/v1/common.proto";
+
+option go_package = "github.com/Skryldev/suromesh/service/gen/suromesh/service/v1;servicev1";
+
+service AccountService {
+  // Binds a Soroush Plus account to the caller's tenant. Idempotent per
+  // phone (re-binding the same phone returns the existing binding).
+  rpc BindAccount(BindAccountRequest) returns (BindAccountResponse);
+
+  // Returns one account of the caller's tenant. Another tenant's account
+  // is indistinguishable from a missing one (NOT_FOUND; no existence
+  // oracle).
+  rpc GetAccount(GetAccountRequest) returns (GetAccountResponse);
+
+  // Lists the caller tenant's accounts, newest first.
+  rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse);
+
+  // Suspends the account: stops its runtime, keeps the encrypted session.
+  rpc SuspendAccount(SuspendAccountRequest) returns (SuspendAccountResponse);
+
+  // Resumes a suspended account (restores the runtime if auto_connect
+  // applies or an explicit Connect follows).
+  rpc ResumeAccount(ResumeAccountRequest) returns (ResumeAccountResponse);
+
+  // Removes the binding and crypto-shreds the stored session material.
+  rpc RemoveAccount(RemoveAccountRequest) returns (RemoveAccountResponse);
+}
+
+message BindAccountRequest {
+  // The account's phone number (E.164-normalized by the service).
+  // Transmitted over TLS; only a keyed hash + masked form persist.
+  string phone = 1;
+  // Operator-chosen label. Required: prevents accidentally treating the
+  // phone as the human identifier.
+  string display_alias = 2;
+}
+message BindAccountResponse {
+  Account account = 1;
+  // True when an existing binding for this phone was returned instead of
+  // a new one.
+  bool existing = 2;
+}
+
+message GetAccountRequest {
+  string account_id = 1;
+}
+message GetAccountResponse {
+  Account account = 1;
+}
+
+message ListAccountsRequest {
+  int32 page_size = 1;   // 1..100; server default 50
+  string page_token = 2; // opaque; from a previous response
+}
+message ListAccountsResponse {
+  repeated Account accounts = 1;
+  optional string next_page_token = 2;
+}
+
+message SuspendAccountRequest {
+  string account_id = 1;
+}
+message SuspendAccountResponse {
+  Account account = 1;
+}
+
+message ResumeAccountRequest {
+  string account_id = 1;
+}
+message ResumeAccountResponse {
+  Account account = 1;
+}
+
+message RemoveAccountRequest {
+  string account_id = 1;
+}
+message RemoveAccountResponse {
+  Account account = 1;
+}

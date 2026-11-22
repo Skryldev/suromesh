@@ -1,0 +1,57 @@
+# SuroMesh Service local environment (Phase 25 master spec §17):
+# service + PostgreSQL. No fake upstream, no dev key baked in — provide
+# your own KEK file and bootstrap key via environment/secrets.
+#
+# Usage (from the repository root):
+#   docker compose -f service/deploy/docker-compose.yml up --build
+#
+# The KEK file must exist locally (32 raw bytes); create one with:
+#   head -c 32 /dev/urandom > service/deploy/kek.bin
+
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: suromesh
+      POSTGRES_USER: suromesh
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_password
+    secrets: [pg_password]
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U suromesh"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  service:
+    build:
+      context: ../..
+      dockerfile: service/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SUROMESH_LISTEN_ADDR: ":50051"
+      SUROMESH_LISTEN_PLAINTEXT_DEV: "true"   # local compose only
+      SUROMESH_STORAGE_POSTGRES_DSN: "postgres://suromesh:$(cat /run/secrets/pg_password)@postgres:5432/suromesh?sslmode=disable"
+      SUROMESH_CRYPTO_PROVIDER: "file"
+      SUROMESH_CRYPTO_FILE_KEY: "/run/secrets/kek"
+      SUROMESH_AUTH_BOOTSTRAP_KEY: "${SUROMESH_AUTH_BOOTSTRAP_KEY:?set in your shell env — never commit}"
+      SUROMESH_AUTH_BOOTSTRAP_TENANT: "bootstrap"
+      SUROMESH_LOG_LEVEL: "info"
+    secrets: [kek]
+    ports:
+      - "50051:50051"
+    restart: unless-stopped
+
+secrets:
+  pg_password:
+    file: ./pg_password.txt
+  kek:
+    file: ./kek.bin
+
+volumes:
+  pg_data:

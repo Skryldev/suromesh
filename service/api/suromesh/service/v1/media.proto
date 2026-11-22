@@ -1,0 +1,84 @@
+// MediaService: streaming media transfer.
+//
+// Upload is CLIENT-STREAMING: frame 1 is mandatory metadata (the
+// upstream protocol requires the total size up-front), subsequent frames
+// are chunks (<= 256 KiB after server-side clamping). Download is
+// SERVER-STREAMING chunks. Server memory is O(chunk) — the SDK streams
+// parts and the service never buffers whole files.
+//
+// Limits (server-enforced, configurable within safe bounds):
+//   - max upload size: 2 GiB (big-file upstream path)
+//   - max chunk size: 256 KiB
+//   - per-tenant daily media byte quota + concurrent transfer caps
+// Partial uploads are discarded on interruption (no server-side resume
+// in v1). File-reference expiry during download is a typed error
+// (FILE_REFERENCE_EXPIRED): re-fetch the message and retry once.
+
+syntax = "proto3";
+
+package suromesh.service.v1;
+
+import "suromesh/service/v1/common.proto";
+
+option go_package = "github.com/Skryldev/suromesh/service/gen/suromesh/service/v1;servicev1";
+
+service MediaService {
+  // Returns the media summary attached to a message (kind, size, mime).
+  rpc GetMediaMetadata(GetMediaMetadataRequest) returns (GetMediaMetadataResponse);
+
+  // Client-streaming upload. The first frame MUST be the start frame;
+  // subsequent frames carry ordered chunks. Completes when the stream
+  // closes; the response carries the sent message.
+  rpc UploadMedia(stream UploadMediaFrame) returns (UploadMediaResponse);
+
+  // Server-streaming download of a message's media. Requires the message
+  // to carry downloadable media.
+  rpc DownloadMedia(DownloadMediaRequest) returns (stream DownloadChunk);
+}
+
+message GetMediaMetadataRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+  string message_id = 3;
+}
+message GetMediaMetadataResponse {
+  MediaSummary media = 1;
+  // "fresh" | "stale" | "unknown" — the reference state as the service
+  // knows it (stale suggests a re-fetch may be needed).
+  string file_reference_state = 2;
+}
+
+message UploadMediaFrame {
+  oneof frame {
+    UploadMediaStart start = 1;
+    bytes chunk = 2;
+  }
+}
+
+message UploadMediaStart {
+  string account_id = 1;
+  PeerRef peer = 2;
+  int64 size_bytes = 3;    // required; 1..2147483648 (2 GiB)
+  string file_name = 4;    // 1..255 chars
+  string mime_type = 5;    // 1..127 chars
+  // Send as a generic document (true) or let the service classify (false).
+  bool as_document = 6;
+  string idempotency_key = 7;
+}
+
+message UploadMediaResponse {
+  Message message = 1; // the sent message carrying the media
+}
+
+message DownloadMediaRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+  string message_id = 3;
+  // Chunk-size hint; the server clamps to 64 KiB..512 KiB.
+  int32 chunk_size_hint = 4;
+}
+
+message DownloadChunk {
+  bytes data = 1;
+  int64 offset = 2;
+}

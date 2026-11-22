@@ -1,0 +1,3 @@
+BenchmarkMutationDispatch-20    	 3451788	       702.1 ns/op	     144 B/op	       3 allocs/op
+BenchmarkReadDispatch-20        	31127516	        67.38 ns/op	       0 B/op	       0 allocs/op
+BenchmarkUpdateHubPublish-20    	37093707	        65.39 ns/op	       0 B/op	       0 allocs/op

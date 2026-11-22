@@ -1,0 +1,7 @@
+# Normalize line endings repository-wide (Phase 23 release engineering).
+# SuroMesh is a Go project: gofmt and the TL generator's byte-exact
+# verification require LF. This overrides core.autocrlf for every
+# checkout (Windows included).
+* text=auto eol=lf
+*.png binary
+*.ico binary

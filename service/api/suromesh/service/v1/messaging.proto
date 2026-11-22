@@ -1,0 +1,154 @@
+// MessagingService: message mutations, retrieval, search, history.
+//
+// Idempotency: all mutating RPCs accept an idempotency key (UUID or
+// 16..128 char opaque string). Retries with the same key return the
+// recorded outcome — including an honest OPERATION_AMBIGUOUS when the
+// upstream connection dropped mid-mutation. The service NEVER reports
+// success without upstream evidence, and NEVER replays an ambiguous
+// mutation.
+//
+// Mutation ambiguity is communicated as UNAVAILABLE +
+// ErrorInfo.reason = "OPERATION_AMBIGUOUS"; reconcile via reads
+// (GetMessages / StreamHistory).
+
+syntax = "proto3";
+
+package suromesh.service.v1;
+
+import "suromesh/service/v1/common.proto";
+
+option go_package = "github.com/Skryldev/suromesh/service/gen/suromesh/service/v1;servicev1";
+
+service MessagingService {
+  // Sends a text message. The service generates the upstream random_id;
+  // the caller's idempotency key scopes the operation.
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+
+  // Fetches messages by id. Missing/unavailable ids are listed
+  // explicitly in missing_ids (never silently dropped).
+  rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse);
+
+  // Edits a text message (upstream edit-window rules apply).
+  rpc EditMessage(EditMessageRequest) returns (EditMessageResponse);
+
+  // Deletes messages in a peer (upstream revoke semantics apply).
+  rpc DeleteMessages(DeleteMessagesRequest) returns (DeleteMessagesResponse);
+
+  // Forwards messages between peers (as supported by the upstream).
+  rpc ForwardMessages(ForwardMessagesRequest) returns (ForwardMessagesResponse);
+
+  // Pins / unpins a message in a peer.
+  rpc PinMessage(PinMessageRequest) returns (PinMessageResponse);
+  rpc UnpinMessage(UnpinMessageRequest) returns (UnpinMessageResponse);
+
+  // Marks the peer read up to max_id (inclusive max-id coverage rule).
+  rpc MarkAsRead(MarkAsReadRequest) returns (MarkAsReadResponse);
+
+  // Searches messages in a peer (upstream-provided matches only).
+  rpc SearchMessages(SearchMessagesRequest) returns (SearchMessagesResponse);
+
+  // Streams history for a peer, newest first. Ends at end-of-history or
+  // on cancellation. Default deadline 60s; the caller may set its own.
+  rpc StreamHistory(StreamHistoryRequest) returns (stream MessageEvent);
+}
+
+message SendMessageRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+  string text = 3; // 1..4096 code points; upstream limits apply
+  optional string reply_to_message_id = 4;
+  string idempotency_key = 5;
+}
+message SendMessageResponse {
+  Message message = 1;
+}
+
+message GetMessagesRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+  repeated string message_ids = 3; // decimal int64 strings, 1..200 ids
+}
+message GetMessagesResponse {
+  repeated Message messages = 1;
+  repeated string missing_ids = 2;
+}
+
+message EditMessageRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+  string message_id = 3;
+  string text = 4;
+  string idempotency_key = 5;
+}
+message EditMessageResponse {
+  Message message = 1;
+}
+
+message DeleteMessagesRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+  repeated string message_ids = 3; // 1..100 ids
+  string idempotency_key = 4;
+}
+message DeleteMessagesResponse {
+  repeated string deleted_ids = 1;
+}
+
+message ForwardMessagesRequest {
+  string account_id = 1;
+  PeerRef from_peer = 2;
+  PeerRef to_peer = 3;
+  repeated string message_ids = 4; // 1..100 ids
+  string idempotency_key = 5;
+}
+message ForwardMessagesResponse {
+  repeated Message messages = 1;
+}
+
+message PinMessageRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+  string message_id = 3;
+  string idempotency_key = 4;
+}
+message PinMessageResponse {
+  Message message = 1;
+}
+
+message UnpinMessageRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+  string message_id = 3;
+}
+message UnpinMessageResponse {
+  Message message = 1;
+}
+message MarkAsReadResponse {
+  Peer peer = 1;
+  int64 max_id = 2;
+}
+
+message MarkAsReadRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+  string max_id = 3; // decimal int64 string
+}
+
+message SearchMessagesRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+  string query = 3;
+  int32 limit = 4; // 1..100; default 20
+}
+message SearchMessagesResponse {
+  repeated Message messages = 1;
+}
+
+message StreamHistoryRequest {
+  string account_id = 1;
+  PeerRef peer = 2;
+  int32 limit = 3; // 0 = until end-of-history; otherwise 1..10000
+}
+message MessageEvent {
+  Message message = 1;
+}
