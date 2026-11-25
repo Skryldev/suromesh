@@ -1,0 +1,8 @@
+go: go version go1.26.11 linux/amd64
+buf: 1.75.0
+protoc-gen-go: protoc-gen-go v1.36.5
+protoc-gen-go-grpc: protoc-gen-go-grpc 1.5.1
+staticcheck: staticcheck 2026.2.2 (0.8.2)
+govulncheck: Go: go1.26.11
+gotestsum: gotestsum version v1.13.0
+psql: psql (PostgreSQL) 18.7

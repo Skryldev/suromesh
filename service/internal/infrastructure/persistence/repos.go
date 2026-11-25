@@ -121,6 +121,28 @@ func (r *TenantRepo) Create(ctx context.Context, name string) (string, error) {
 	return id, nil
 }
 
+// GetOrCreate resolves a tenant by name, creating it when absent. The
+// concurrent-insert case is settled by the name UNIQUE constraint: the
+// loser reads the winner's row.
+func (r *TenantRepo) GetOrCreate(ctx context.Context, name string) (string, error) {
+	var id string
+	err := r.pool.QueryRow(ctx,
+		`SELECT id FROM tenants WHERE name = $1`, name).Scan(&id)
+	if err == nil {
+		return id, nil
+	}
+	if !errors.Is(err, pgx.ErrNoRows) {
+		return "", mapPgxErr(err, "tenant lookup")
+	}
+	if err := r.pool.QueryRow(ctx,
+		`INSERT INTO tenants (name) VALUES ($1)
+		 ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+		 RETURNING id`, name).Scan(&id); err != nil {
+		return "", mapPgxErr(err, "tenant create")
+	}
+	return id, nil
+}
+
 func (r *TenantRepo) Get(ctx context.Context, id string) (ports.TenantRecord, error) {
 	var rec ports.TenantRecord
 	err := r.pool.QueryRow(ctx,
@@ -313,11 +335,13 @@ func (r *OperationRepo) Claim(ctx context.Context, rec ports.OperationRecord) (p
 
 	var existing ports.OperationRecord
 	var state string
+	// result_ref is nullable (NULL until Finish): scan via *string.
+	var resultRef *string
 	err = tx.QueryRow(ctx, `
 		SELECT id, state, result_ref, fingerprint FROM operations
 		WHERE tenant_id = $1::uuid AND kind = $2 AND op_key = $3
 		FOR UPDATE`, rec.TenantID, rec.Kind, rec.Key).
-		Scan(&existing.ID, &state, &existing.ResultRef, &existing.Fingerprint)
+		Scan(&existing.ID, &state, &resultRef, &existing.Fingerprint)
 	switch {
 	case err == nil:
 		if rec.Fingerprint != "" && existing.Fingerprint != "" &&
@@ -326,6 +350,9 @@ func (r *OperationRepo) Claim(ctx context.Context, rec ports.OperationRecord) (p
 				"%w: idempotency key reused with different request", domain.ErrAlreadyExists)
 		}
 		existing.State = state
+		if resultRef != nil {
+			existing.ResultRef = *resultRef
+		}
 		return existing, false, tx.Commit(ctx)
 	case errors.Is(err, pgx.ErrNoRows):
 		// fall through to insert

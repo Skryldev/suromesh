@@ -1,0 +1,9 @@
+Fetching vulnerabilities from the database...
+
+govulncheck: fetching vulnerabilities: HTTP GET https://vuln.go.dev/index/modules.json.gz returned unexpected status: 403 Forbidden
+STATUS: BLOCKED_ENVIRONMENT — vuln.go.dev unreachable (egress 403)
+The dependency-scan control is INACTIVE for this run; a scan
+with reachable vuln DB is REQUIRED before production release.
+Fetching vulnerabilities from the database...
+
+govulncheck: fetching vulnerabilities: HTTP GET https://vuln.go.dev/index/modules.json.gz returned unexpected status: 403 Forbidden

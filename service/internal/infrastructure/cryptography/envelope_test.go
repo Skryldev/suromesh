@@ -12,7 +12,7 @@ import (
 	"github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography"
 )
 
-func testKeyFile(t *testing.T) string {
+func testKeyFile(t testing.TB) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "kek.bin")
 	key := make([]byte, 32)

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>گزارش مهندسی فاز ۲۷ — صلاحیت انتشار SuroMesh</title>
+<style>
+:root{--ink:#1a2332;--muted:#5a6a7e;--line:#d7dee8;--bg:#f7f9fc;--card:#ffffff;--accent:#0b5394;--ok:#1b7f4d;--bad:#b3261e;--warn:#9a6b00;--chipbg:#eef3f9;}
+*{box-sizing:border-box}
+html{font-size:16px}
+body{font-family:"Vazirmatn","Segoe UI",Tahoma,"Iranian Sans",sans-serif;color:var(--ink);background:var(--bg);margin:0;line-height:1.9}
+main{max-width:1080px;margin:0 auto;padding:1.25rem}
+header{background:linear-gradient(135deg,#0b3954,#0b5394);color:#fff;padding:2rem 1.25rem}
+header .wrap{max-width:1080px;margin:0 auto}
+header h1{margin:0 0 .4rem;font-size:1.6rem}
+header p{margin:.2rem 0;opacity:.92}
+h2{font-size:1.25rem;color:var(--accent);border-inline-start:5px solid var(--accent);padding-inline-start:.6rem;margin-top:2.2rem}
+h3{font-size:1.05rem;color:#123c63}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:1.1rem 1.3rem;margin:.9rem 0}
+table{width:100%;border-collapse:collapse;font-size:.88rem;margin:.7rem 0}
+th,td{border:1px solid var(--line);padding:.45rem .6rem;text-align:right;vertical-align:top}
+th{background:var(--chipbg);font-weight:700}
+tr:nth-child(even) td{background:#fbfcfe}
+code,.mono{font-family:"Cascadia Code",Consolas,monospace;direction:ltr;unicode-bidi:embed;font-size:.85em;background:#f0f3f8;padding:.05em .35em;border-radius:4px}
+pre{background:#0f1722;color:#dce6f2;padding:.9rem;border-radius:8px;overflow-x:auto;direction:ltr;text-align:left;font-size:.8rem;line-height:1.6}
+pre code{background:none;color:inherit}
+.chip{display:inline-block;padding:.05rem .55rem;border-radius:999px;font-size:.78rem;font-weight:600}
+.pass{background:#e2f4ea;color:var(--ok)}
+.fail{background:#fbe4e2;color:var(--bad)}
+.warn{background:#fff3d6;color:var(--warn)}
+.info{background:var(--chipbg);color:var(--accent)}
+.blocked{background:#eadef7;color:#6d28a8}
+.verdict{border:2px solid var(--warn);background:#fffdf4}
+.big{font-size:1.15rem;font-weight:800}
+ul{padding-inline-start:1.3rem}
+li{margin:.25rem 0}
+.small{font-size:.82rem;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.8rem}
+.kpi{border:1px solid var(--line);border-radius:8px;padding:.7rem .9rem;background:#fbfcfe}
+.kpi .v{font-size:1.3rem;font-weight:800;color:var(--accent)}
+.kpi .t{font-size:.8rem;color:var(--muted)}
+@media print{body{background:#fff}section{break-inside:avoid;border:none;padding:.3rem 0}header{-webkit-print-color-adjust:exact;print-color-adjust:exact}h2{break-after:avoid}}
+@media (max-width:640px){html{font-size:15px}main{padding:.6rem}section{padding:.8rem}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>گزارش مهندسی فاز ۲۷ — صلاحیت انتشار، CI/CD بومی Docker، اعتبارسنجی مهاجرت پایگاه‌داده و ممیزی نهایی انطباق SDK</h1>
+    <p>پروژه: SuroMesh — SDK‌ پروتکل Soroush Plus (Go) + سرویس gRPC چندمستأجره</p>
+    <p>تاریخ اجرا: ۲۴ نوامبر ۲۰۲۶ · محیط: Docker Engine 29.9.3 + Compose v5.7.1 · linux/amd64</p>
+    <p class="small">این گزارش مستقل است (بدون وابستگی خارجی)، راست‌به‌چپ و آمادهٔ چاپ. همهٔ نتایج از اجرای واقعی در کانتینر تولید شده‌اند؛ شواهد در <code>service/docs/audit/evidence/</code>.</p>
+  </div>
+</header>
+<main>
+
+<!-- 1 -->
+<section id="exec-summary">
+<h2>۱. خلاصهٔ مدیریتی</h2>
+<p>فاز ۲۷ با هدف «صلاحیت انتشار» اجرا شد: ساخت خط کامل CI/CD بومی Docker، اجرای نخستین مجموعهٔ تست‌های یکپارچگی PostgreSQL روی نمونهٔ واقعی، اعتبارسنجی سناریوهای مهاجرت (A تا F)، بازسازی کامل حساب‌وکتاب انطباق SDK↔سرویس، و ارزیابی امنیتی/عملیاتی. در طول اجرا، <strong>ده عیب عملیاتی واقعی + یک ناهم‌خوانی مستنداتی</strong> کشف و رفع شد؛ چهار مورد از آن‌ها (ایندکس سراسری تلفن، padding ستون‌های CHAR، اسکن نال result_ref و ناهم‌خوانی نام/UUID مستأجر bootstrap) <strong>فقط با PostgreSQL واقعی و تست سیم‌سطح قابل کشف بودند</strong> — تأییدی بر ارزش این فاز.</p>
+<div class="grid">
+  <div class="kpi"><div class="v">۷۳</div><div class="t">متد عمومی SDK — همگی ردیابی‌شده و حساب‌شده</div></div>
+  <div class="kpi"><div class="v">۳۳</div><div class="t">سطر ماتریس انطباق (۱۹+۱۰+۱+۱+۲ = ۳۳)</div></div>
+  <div class="kpi"><div class="v">۱۰۱</div><div class="t">سطر ماتریس تست (۳۰ سطر افزودهٔ فاز ۲۷)</div></div>
+  <div class="kpi"><div class="v">۱۰+۱</div><div class="t">عیب واقعی کشف‌شده و رفع‌شده (۱۰ عملیاتی + ۱ مستنداتی)</div></div>
+  <div class="kpi"><div class="v">۴۴۹/۱۴۹ KiB</div><div class="t">رشد حافظهٔ انتقال ۳۲ MiB رسانه (سقف مجاز ۸ MiB)</div></div>
+  <div class="kpi"><div class="v">۰</div><div class="t">Data Race در مجموعهٔ ۶۳۷تستی SDK با <code>-race</code></div></div>
+</div>
+<p>نتیجهٔ صلاحیت‌سنجی: <span class="chip warn">QUALIFIED WITH DOCUMENTED RESTRICTIONS</span> — به شرح بند ۲. مسیر عملیاتی به‌سوی Staging کنترل‌شده باز است؛ محدودیت‌های مستند (عدم اعتبارسنجی زندهٔ Soroush Plus، نبود KMS، نبود تله‌متری OTel، قید تک‌نمونه) مانع ورود به Production عمومی هستند.</p>
+</section>
+
+<!-- 2 -->
+<section id="verdict" class="verdict">
+<h2>۲. حکم نهایی صلاحیت</h2>
+<p class="big">QUALIFIED WITH DOCUMENTED RESTRICTIONS</p>
+<table>
+<tr><th>بُعد</th><th>وضعیت</th><th>مبنا</th></tr>
+<tr><td>زیرساخت CI/CD بومی Docker</td><td><span class="chip pass">تأمین‌شده</span></td><td>کل خط از یک Checkout تمیز با فقط Docker+Compose+bash قابل اجراست؛ <code>make ci</code> / <code>./scripts/ci.sh ci</code></td></tr>
+<tr><td>تست‌های یکپارچگی PostgreSQL</td><td><span class="chip pass">سبز</span></td><td>۱۱ تست (شامل ۵ سناریوی مهاجرت) روی <code>postgres:17-alpine</code> سبز شد</td></tr>
+<tr><td>مهاجرت‌های دیتابیس</td><td><span class="chip pass">تأییدشده</span></td><td>سناریوهای A–E سبز + مسابقهٔ ۴فرایندی واقعی migrate CLI؛ Scenario F با بوت سرویس روی دیتابیس مهاجرت‌شده (پروفایل e2e)</td></tr>
+<tr><td>انطباق SDK↔سرویس</td><td><span class="chip pass">آشتی‌داده‌شده</span></td><td>تناقض حساب‌داری گزارش قبل برطرف شد؛ ۷۳ متد = ۳۳+۱۲+۴+۱۵+۹</td></tr>
+<tr><td>امنیت کانتینر و کریپتو</td><td><span class="chip pass">تأییدشده</span></td><td>runtime مخرب‌سنجی‌شده (scratch/nonroot)، باتری adversaries رمزنگاری سبز، govulncheck</td></tr>
+<tr><td>اعتبارسنجی زندهٔ Soroush Plus</td><td><span class="chip blocked">BLOCKED_NO_LIVE_ACCOUNT</span></td><td>بدون اعتبارنامهٔ مجاز — مسیر جدا و opt-in (بند ۲۲)</td></tr>
+<tr><td>KMS تولیدی</td><td><span class="chip warn">OPEN (تصمیم مالک)</span></td><td>فقط interface + fail-closed؛ production محدود به dev-file KEK</td></tr>
+<tr><td>تله‌متری OTel/OTLP</td><td><span class="chip warn">OPEN</span></td><td>پیاده‌سازی شروع نشده (ادعای «نیمه‌وصل» گزارش قبل نادرست بود) — بند ۱۸</td></tr>
+<tr><td>مدل تک‌نمونه</td><td><span class="chip warn">محدودیت مستند</span></td><td>recraft: Recreate + ADR-0002؛ بدون lease/fencing توزیع‌شده</td></tr>
+</table>
+<p class="small">مبنای حکم: همهٔ معیارهای تکمیل §18 که به کد/محیط وابسته‌اند برقرار شد؛ سه معیارِ وابسته به عوامل خارجی (اعتبارنامهٔ زنده، KMS وندور، باک‌اند تله‌متری) صادقانه به‌عنوان محدودیت مستند ثبت شدند، نه PASS.</p>
+</section>
+
+<!-- 3 -->
+<section id="scope">
+<h2>۳. دامنه و روش‌شناسی</h2>
+<ul>
+<li><strong>اصول فاز:</strong> همهٔ گزارش‌های فازهای قبل «ادعا» تلقی شدند و صرفاً با اجرای مجدد/شواهد جاری پذیرفته شدند. هیچ تستی بدون اجرای مجدد PASS فرض نشد.</li>
+<li><strong>محیط اجرا:</strong> Docker Engine 29.9.3، Compose v5.7.1، میزبان linux/amd64؛ ابزارهای داخل تصویر CI پین‌شده: Go 1.26.11، buf v1.75.0، protoc-gen-go v1.36.5، protoc-gen-go-grpc v1.5.1، staticcheck v0.8.2، govulncheck v1.10.0، gotestsum v1.13.0.</li>
+<li><strong>اجرا:</strong> <code>./scripts/ci.sh ci</code> — اجرای قطعی نهایی: <strong>همهٔ ۱۲ گام PASS، صفر شکست</strong> (پروژهٔ Compose <code>suromesh-ci-20261124-180419</code>؛ لاگ کامل در <code>phase27/ci-run.log</code>). خروجی‌های JUnit XML و لاگ کامل در <code>service/docs/audit/evidence/phase27/</code>.</li>
+<li><strong>سیاست گیت:</strong> هر چک اجباری کد خروج واقعی خود را propagate می‌کند؛ هیچ شکستی به skip تبدیل نشد. تست‌های زنده اساساً در خط پیش‌فرض نیستند (opt-in اپراتور).</li>
+<li><strong>محریمنگی:</strong> هیچ تماسی با Soroush Plus، هیچ push/انتشار، هیچ کلید واقعی. کلیدهای e2e از <code>/dev/urandom</code> per-run ساخته و پاک می‌شوند.</li>
+</ul>
+</section>
+
+<!-- 4 -->
+<section id="repo">
+<h2>۴. راستی‌آزمایی مخزن و معماری</h2>
+<table>
+<tr><th>ادعای قبلی</th><th>بررسی فاز ۲۷</th><th>نتیجه</th></tr>
+<tr><td>«۷۳ متد عمومی Client»</td><td>استخراج برنامه‌ای از <code>func (c *Client)</code> در فایل‌های غیرتستی</td><td><span class="chip pass">تأیید — دقیقاً ۷۳</span></td></tr>
+<tr><td>«۳۳ سطر ماتریس انطباق»</td><td>شمارش CSV واقعی</td><td><span class="chip pass">تأیید — ۳۳ سطر</span> (اما جمع وضعیت‌های گزارش‌شده ۲۸ بود — بند ۶)</td></tr>
+<tr><td>«SDK هرگز وابسته به سرویس نیست»</td><td>اسکن <code>go list</code> + grep مرز ماژول + گیت <code>module-separation</code></td><td><span class="chip pass">تأیید — یک‌طرفه</span></td></tr>
+<tr><td>«PostgreSQL قبلاً block بود»</td><td>در این فاز با Docker حل شد</td><td><span class="chip pass">رفع‌شده</span></td></tr>
+<tr><td>«OTLP نیمه‌وصل»</td><td>grep کل service/internal برای otel/otlp: صفر نتیجه؛ ADR-0012 وضعیت «implementation pending»</td><td><span class="chip warn">نادرست — اصلاً شروع نشده</span></td></tr>
+<tr><td>Compose دیپلوی سالم</td><td>DSN با جانشینی سمت‌میزبان <code>$(cat /run/secrets/…)</code> که عملاً کار نمی‌کند + نسخهٔ PG ناهماهنگ</td><td><span class="chip fail">عیب — رفع شد</span></td></tr>
+</table>
+<p>معماری (Hexagonal، AccountRunner، Envelope Encryption، Protobuf <code>suromesh.service.v1</code>) با سورس تأیید شد؛ مرز ماژول‌ها با گیت خودکار در هر اجرا enforce می‌شود.</p>
+</section>
+
+<!-- 5 -->
+<section id="conformance">
+<h2>۵. انطباق SDK به سرویس</h2>
+<p>ماتریس انطباق با شناسهٔ سطر (<code>R01…R33</code>) بازسازی و در <a href="../evidence/sdk-conformance-matrix.csv"><code>sdk-conformance-matrix.csv</code></a> به‌روزرسانی شد. برای نخستین بار یک <strong>صورت‌کشفی متد-به-متد</strong> (<a href="../evidence/sdk-method-inventory.csv"><code>sdk-method-inventory.csv</code></a>) تولید شد که هر ۷۳ متد را دقیقاً یک‌بار حساب می‌کند:</p>
+<table>
+<tr><th>طبقهٔ متد</th><th>تعداد</th><th>معنا</th></tr>
+<tr><td>EXPOSED</td><td>۳۳</td><td>آداپتور متد را صدا می‌زند؛ قابلیت از طریق سطر ماتریس به API می‌رسد</td></tr>
+<tr><td>GROUPED_EXPOSED</td><td>۱۲</td><td>قابلیت از طریق متد هم‌خانواده در دسترس است (مثل <code>SendMessage</code> از مسیر <code>SendMessageOpts</code>)</td></tr>
+<tr><td>ADAPTER_INTERNAL</td><td>۴</td><td>مصرف داخلی آداپتور/SDK؛ قابلیت خام عمداً افشا نمی‌شود (مانند <code>Invoke</code> — ADR-0003)</td></tr>
+<tr><td>SDK_SUPPORT</td><td>۱۵</td><td>سطح دیاگ/تیونینگ (Metrics، Hooks، SetFloodWaitThreshold و…)؛ عمداً بدون API</td></tr>
+<tr><td>TEST_SUPPORT</td><td>۹</td><td>کمک‌آزمون‌های خروجی‌گرفته (<code>*ForTest</code>، <code>Seed*</code>)؛ هرگز در مسیر تولید</td></tr>
+<tr><td><strong>جمع</strong></td><td><strong>۷۳</strong></td><td>برابر با شمار واقعی متدها ✓</td></tr>
+</table>
+<p>نکات کلیدی بررسی معنایی (طبق §6 پرامپت): Session import/export (تقارن export/import با تست)، محدودیت StringSession (مسیر UNSUPPORTED صادقانه)، صفحه‌بندی دیالوگ‌ها (توکن آپشنال+کدک تست‌شده)، FloodWait (نگاشت <code>UPSTREAM_FLOOD_WAIT</code> با wait_seconds در ErrorInfo)، ابهام Mutation (سند رسمی + ledger idempotency)، استریم رسانه (بند ۱۶)، تضمین‌های ترتیب UpdateHub (drop-politik مشترکین کند + تست)، و Cancellation (بند ۱۳).</p>
+</section>
+
+<!-- 6 -->
+<section id="reconciliation">
+<h2>۶. آشتی ماتریس انطباق</h2>
+<p><strong>تناقض گزارش فاز ۲۶ حل شد:</strong> گزارش قبلی «۳۳ سطر» می‌گفت اما فقط ۲۸ وضعیت شمرده بود (۱۵+۹+۱+۱+۲). شمارش واقعی CSV:</p>
+<table>
+<tr><th>وضعیت</th><th>گزارش فاز ۲۶</th><th>واقعی (تأیید فاز ۲۷)</th></tr>
+<tr><td>FAITHFUL</td><td>۱۵</td><td><strong>۱۹</strong></td></tr>
+<tr><td>FAITHFUL_WITH_DOCUMENTED_ADAPTATION</td><td>۹</td><td><strong>۱۰</strong></td></tr>
+<tr><td>PARTIALLY_FAITHFUL</td><td>۱</td><td>۱</td></tr>
+<tr><td>NOT_EXPOSED</td><td>۱</td><td>۱</td></tr>
+<tr><td>UNSUPPORTED</td><td>۲</td><td>۲</td></tr>
+<tr><td>SEMANTIC_MISMATCH</td><td>۰</td><td>۰</td></tr>
+<tr><td><strong>جمع</strong></td><td>۲۸ (ناسازگار با «۳۳ سطر»)</td><td><strong>۳۳</strong> ✓</td></tr>
+</table>
+<p>منبع اختلاف: ۵ سطر (R07 با سه RPC، R26، و سطرهای گروهی peer-info) در جمع‌بندی قبلی یک‌بار به‌جای به تفصیل شمرده شده بودند. مخرج‌های درصدگزاری تفکیک شدند: سطح قابلیت = ۳۳ سطر؛ سطح متد = ۷۳ متد؛ هرگز ترکیب نمی‌شوند (سند کامل: <a href="../evidence/conformance-reconciliation.md"><code>conformance-reconciliation.md</code></a>).</p>
+</section>
+
+<!-- 7 -->
+<section id="cicd">
+<h2>۷. معماری CI/CD بومی Docker</h2>
+<p>کل خط بدون GitHub Actions، بدون رانر میزبان، بدون Go/PostgreSQL محلی اجرا می‌شود. نیازمندی میزبان: فقط Docker Engine + Compose + bash (یا make برای میان‌برها).</p>
+<pre><code>host (docker + bash)
+ └─ scripts/ci.sh ci                      # ارکستراتور؛ پروژهٔ Compose per-run
+     └─ docker compose -p suromesh-ci-&lt;runid&gt; -f service/deploy/compose/ci.compose.yml
+         ├─ ci             (suromesh-ci-runner:phase27)  — Go + ابزارهای پین‌شده
+         ├─ postgres-test  (postgres:17-alpine, tmpfs)   — DBephemeral هر اجرا
+         └─ service        (scratch/nonroot)             — تصویر تولیدی تحت تست</code></pre>
+<table>
+<tr><th>گام</th><th>Profile</th><th>محتوا</th></tr>
+<tr><td><code>test</code></td><td>test</td><td>gofmt، سلامت ماژول، build، vet، staticcheck، مرز domain، buf lint، بازتولید کدgen (بدون drift)، buf breaking نسبت به baseline، تست‌های unit (JUnit)، Fuzz سربستهٔ محدود</td></tr>
+<tr><td><code>race</code></td><td>race</td><td>SDK + سرویس با <code>-race</code> روی PostgreSQL واقعی</td></tr>
+<tr><td><code>integration</code></td><td>integration</td><td>تست‌های persistence + سناریوهای مهاجرت A–E</td></tr>
+<tr><td><code>migration</code></td><td>migration</td><td>سناریوهای Go + باتری CLI شامل مسابقهٔ ۴فرایندی</td></tr>
+<tr><td><code>e2e</code></td><td>e2e</td><td>ساخت تصویر تولیدی + بوت کانتینر + ۱۳ چک gRPC سیم‌سطح</td></tr>
+<tr><td><code>security</code></td><td>security</td><td>govulncheck (SDK+service)، باتری adversarial رمز، authn/authz، config fail-closed، اسکن secret</td></tr>
+<tr><td><code>build/smoke</code></td><td>e2e</td><td>ساخت تصویر + راستی‌آزمایی runtime (nonroot/بدون shell/لاگ stdout/خاموشی نرم)</td></tr>
+<tr><td><code>release</code></td><td>release</td><td>سیاست release (ردّ سخت replace)، تفکیک ماژول، سلامت vectors، اسناد الزامی</td></tr>
+</table>
+<p><strong>تکرارپذیری:</strong> کلید‌های رمزی e2e هر اجرا از urandom؛ DB روی tmpfs با <code>--no-sync</code> و نابودی تضمینی با <code>down -v</code>؛ reset وضعیت بین گام‌ها (هیچ اجرای شکست‌خورده‌ای اجرای بعد را آلوده نمی‌کند)؛ کش‌های خارجی فقط Go module/build. پین‌کردن نسخه‌ها و روش به‌روزرسانی تصاویر در <code>service/docs/operations/docker-ci.md</code> مستند است. محدودیت محیط ثبت شد: egress این میزبان proxy.golang.org/gcr.io/ghcr.io را مسدود می‌کند؛ GOPROXY روی میرور checksum-verified (<code>goproxy.cn</code>) و runtime تصویر روی scratch تنظیم شد (بند ۸).</p>
+</section>
+
+<!-- 8 -->
+<section id="docker-build">
+<h2>۸. راستی‌آزمایی ساخت Docker</h2>
+<table>
+<tr><th>مورد</th><th>نتیجه</th><th>شواهد</th></tr>
+<tr><td>ساخت multi-stage از Checkout تمیز</td><td><span class="chip pass">PASS</span></td><td>گام <code>service-image-build</code>؛ context = ریشهٔ مخزن</td></tr>
+<tr><td>Runtime تصویر</td><td><span class="chip pass">scratch</span></td><td>فقط باینری static (<code>CGO_ENABLED=0</code>, <code>-trimpath -s -w</code>) + CA certs؛ بدون libc/shell/پکیج</td></tr>
+<tr><td>Non-root</td><td><span class="chip pass">UID 65532</span></td><td><code>USER 65532:65532</code> — سازگار با securityContext کا۸اس</td></tr>
+<tr><td>دلیل انحراف از distroless</td><td class="mono">gcr.io 403</td><td>egress محیط gcr.io/ghcr.io/cgr.dev را می‌بندد (docker.io باز)؛ scratch سخت‌گیرانه‌تر از distroless-static است</td></tr>
+<tr><td>معماری باینری</td><td>linux/amd64</td><td><code>GOOS=linux</code> در میزبان amd64</td></tr>
+<tr><td>بدون سورس/reference در تصویر</td><td><span class="chip pass">تأیید</span></td><td>مرحلهٔ runtime فقط دو COPY دارد</td></tr>
+</table>
+<p class="small">یادداشت چرخهٔ تصویر: اگر egress باز شود می‌توان به <code>gcr.io/distroless/static-debian12:nonroot</code> برگشت؛ مزیت scratch: سطح حملهٔ کمتر و صفر وابستگی registry خارج از docker.io.</p>
+</section>
+
+<!-- 9 -->
+<section id="pg-env">
+<h2>۹. محیط تست PostgreSQL</h2>
+<ul>
+<li><code>postgres:17-alpine</code> (پین‌شده) با <code>POSTGRES_INITDB_ARGS=--no-sync</code> روی <strong>tmpfs 1GB</strong> — دادهٔ تست حیاتی و بی‌اثر؛ هیچ volume ماندگار تستی وجود ندارد.</li>
+<li>Healthcheck واقعی <code>pg_isready</code>؛ گام ci با <code>depends_on: condition: service_healthy</code> سخت‌گیرانه منتظر سلامت می‌ماند (نه فقط running)؛ اسکریپت‌ها حلقهٔ readiness مستقل psql نیز دارند.</li>
+<li>اعتبارنامهٔ تست throwaway روی شبکهٔ داخلی Compose — بدون پورت میزبان، بدون اعتبارنامهٔ production.</li>
+<li>پروژهٔ Compose per-run + <code>reset_state</code> بین گام‌ها ⇒ عدم آلودگی متقابل اجراها (در اجرای این فاز عملاً یک آلودگی cross-step کشف و با همین سازوکار بسته شد).</li>
+</ul>
+</section>
+
+<!-- 10 -->
+<section id="migration">
+<h2>۱۰. اعتبارسنجی مهاجرت دیتابیس</h2>
+<p>رانر مهاجرت داخلی (بدون فریم‌ورک جدید — منطق موجود ارتقا یافت) حالا با <strong>قفل مشورتی PostgreSQL</strong> (<code>pg_advisory_lock</code>) کل اجرای مهاجرت را بین همهٔ مهاجرها سری‌سازی می‌کند؛ تراکنش per-migration و ledger <code>schema_migrations</code> حفظ شد. یک <strong>CLI اپراتور</strong> (<code>service/cmd/migrate</code>) با <code>up|status</code> و کد خروج قطعی افزوده شد و گیت <code>VerifySchema</code> بوت سرویس را در برابر اسکیمای ناسازگار fail-closed می‌کند.</p>
+<table>
+<tr><th>سناریو</th><th>تست</th><th>نتیجه</th></tr>
+<tr><td>A — نصب تازه</td><td>DB خالی → همهٔ مهاجرت‌ها → راستی‌سازی جدول/ستون/قید → راندتراپ اپ</td><td><span class="chip pass">PASS</span></td></tr>
+<tr><td>B — idempotency</td><td>اجرای دوبارهٔ رانر؛ ledger و مجموعهٔ جداول بایت‌به‌بایت یکسان</td><td><span class="chip pass">PASS</span></td></tr>
+<tr><td>C — مهاجرت ناتمام</td><td>تزریق شکست کنترل‌شده وسط تراکنش؛ rollback کامل؛ ledger سازگار؛ بازیابی roll-forward موفق</td><td><span class="chip pass">PASS</span></td></tr>
+<tr><td>D — ارتقای DB موجود</td><td>دادهٔ نماینده در 0001 + مهاجرت بعدی؛ حفظ داده و backfill صحیح</td><td><span class="chip pass">PASS</span></td></tr>
+<tr><td>E — مهاجرت همزمان</td><td>۸ مهاجر goroutine + <strong>۴ فرایند واقعی</strong> همزمان؛ قفل سری‌سازی؛ دقیقاً یک‌بار اعمال</td><td><span class="chip pass">PASS</span></td></tr>
+<tr><td>F — سازگاری اپ</td><td>سرویس واقعی روی DB مهاجرت‌شده (پروفایل e2e) + ۱۱ تست persistence</td><td><span class="chip pass">PASS</span></td></tr>
+</table>
+<p><strong>سیاست بازیابی:</strong> فقط roll-forward (down-migration وجود ندارد و ادعا هم نمی‌شود). عملیات اپراتور (up/status/بررسی schema/reset محیط تست) در <code>service/docs/operations/docker-ci.md</code>. هیچ عملیات مخرب/ریست production در هیچ دستور پیش‌فرض نیست.</p>
+<p><strong>سه عیب واقعی که همین مجموعه کشف کرد:</strong></p>
+<table>
+<tr><th>#</th><th>عیب</th><th>اثر بالقوه</th><th>رفع</th></tr>
+<tr><td>۱</td><td>ایندکس یکتای سراسری <code>phone_hash</code> در تناقض با یکتایی tenant-scoped</td><td>یک شماره در دو tenant قابل bind نبود — نقض چندمستأجری</td><td>حذف ایندکس سراسری؛ حفظ <code>UNIQUE(tenant_id, phone_hash)</code></td></tr>
+<tr><td>۲</td><td>اسکن <code>result_ref</code> nullable در <code>string</code> غیرنال</td><td>کرش مسیر replay idempotency با PG واقعی</td><td>اسکن <code>*string</code> + تبدیل امن</td></tr>
+<tr><td>۳</td><td>ستون‌های <code>CHAR(n)</code> با معنای blank-padding</td><td>مقایسه‌های fingerprint/key_hash پس از خواندن pad می‌خوردند</td><td>انتقال همهٔ ستون‌های طول‌ثابت به TEXT</td></tr>
+<tr><td>۴</td><td>اعتبارنامهٔ bootstrap با «نام» مستأجر ثبت می‌شد در حالی که persistence با UUID مستأجر scope می‌کند (SEC-27)</td><td>در استقرار واقعی هر درخواست احرازشده شکست می‌خورد — فقط توسط باتری سیم‌سطح E2E کشف شد</td><td>materialize کردن مستأجر bootstrap در startup + ثبت override با UUID (<code>GetOrCreate</code>)</td></tr>
+</table>
+</section>
+
+<!-- 11 -->
+<section id="integration">
+<h2>۱۱. نتایج تست‌های یکپارچگی</h2>
+<table>
+<tr><th>خانواده</th><th>تست‌ها</th><th>نتیجه</th><th>شواهد</th></tr>
+<tr><td>persistence (tenant isolation, session round-trip, idempotency+مسابقهٔ claims، audit)</td><td>۶</td><td><span class="chip pass">همه سبز روی PG واقعی</span></td><td>junit/integration.xml + migration-scenarios.log</td></tr>
+<tr><td>سناریوهای مهاجرت A–E</td><td>۵</td><td><span class="chip pass">سبز</span></td><td>همان بالا</td></tr>
+<tr><td>unit سرویس (۹ پکیج)</td><td>۱۴۱</td><td><span class="chip pass">سبز</span></td><td>junit/service-unit.xml</td></tr>
+<tr><td>unit + race SDK</td><td>۶۳۷</td><td><span class="chip pass">سبز، ۰ Data Race</span></td><td>junit/sdk-race.xml</td></tr>
+<tr><td>runtime-reliability (فاز ۲۷)</td><td>۱۱</td><td><span class="chip pass">سبز</span></td><td>runtime-reliability-results.md</td></tr>
+<tr><td>رمزنگاری adversarial (فاز ۲۷)</td><td>۷</td><td><span class="chip pass">سبز</span></td><td>crypto-battery.log</td></tr>
+<tr><td>رسانه — رگرسیون‌های مسیر (فاز ۲۷)</td><td>۳</td><td><span class="chip pass">سبز</span></td><td>همان بالا</td></tr>
+</table>
+</section>
+
+<!-- 12 -->
+<section id="e2e">
+<h2>۱۲. نتایج تست‌های End-to-End</h2>
+<p>کلاینت E2E اختصاصی (<code>service/cmd/e2eclient</code>) با gRPC واقعی (WaitForReady) به کانتینر سرویس وصل می‌شود — نه handler درون-پروسه‌ای. ۱۳ چک سیم‌سطح:</p>
+<table>
+<tr><th>چک</th><th>قرارداد سنجیده‌شده</th><th>نتیجه</th></tr>
+<tr><td>readiness</td><td>سرور ظرف ۴۵s پاسخ‌گو می‌شود</td><td><span class="chip pass">PASS</span></td></tr>
+<tr><td>درخواست بی‌اعتبارنامه / کلید نادرست</td><td><code>UNAUTHENTICATED</code></td><td><span class="chip pass">PASS</span></td></tr>
+<tr><td>BindAccount bootstrap</td><td><code>PENDING_AUTH</code>؛ شمارهٔ خام هرگز برنمی‌گردد (masked فقط)</td><td><span class="chip pass">PASS</span></td></tr>
+<tr><td>Bind مجدد</td><td>idempotent (existing=true، همان شناسه)</td><td><span class="chip pass">PASS</span></td></tr>
+<tr><td>Get/List حساب</td><td>tenant-scoped، alias صحیح</td><td><span class="chip pass">PASS</span></td></tr>
+<tr><td>SessionStatus/AuthorizationState پیش از auth</td><td>absent/UNAUTHORIZED</td><td><span class="chip pass">PASS</span></td></tr>
+<tr><td>حساب ناشناس</td><td><code>NOT_FOUND</code> + ErrorInfo(NOT_FOUND)</td><td><span class="chip pass">PASS</span></td></tr>
+<tr><td>SendCode بدون اکانت زنده</td><td>شکست صادقانه با reason پایدار — موفقیت جعلی ممنوع</td><td><span class="chip pass">PASS</span></td></tr>
+<tr><td>Upload با size Declared غیرمجاز</td><td><code>INVALID_ARGUMENT</code> (سقف 2GiB)</td><td><span class="chip pass">PASS</span></td></tr>
+<tr><td>RemoveAccount</td><td>crypto-shred؛ سپس NOT_FOUND</td><td><span class="chip pass">PASS</span></td></tr>
+</table>
+<p class="small">خروجی خام: <code>phase27/e2e-results.txt</code>. هیچ تماس زنده‌ای با Soroush Plus در این باتری نیست — فقط مرزهای قرارداد.</p>
+</section>
+
+<!-- 13 -->
+<section id="runner">
+<h2>۱۳. قابلیت اطمینان AccountRunner</h2>
+<p>یازده قرارداد حیاتی به‌صورت تست پین شدند (جدول کامل در <a href="../evidence/runtime-reliability-results.md"><code>runtime-reliability-results.md</code></a>): لغو پیش/حین dispatch، خاموشی با کار در صف، اشباع صف (ردّ قطعی <code>ErrTooManyRequests</code>)، سری‌سازی mutation‌ها، مسابقهٔ ۱۶گانهٔ StartRunner (دقیقاً یک client)، بستن client در Start ناموفق، چرخه‌های start/stop و connect/disconnect، بهداشت goroutine، و پاک‌سازی مشترکین. <strong>سه عیب واقعی</strong> در همین فرآیند کشف و با تست رگرسیون بسته شد: رقابت Create دوم در StartRunner همزمان، نشت client در Start ناموفق، و پنجرهٔ enqueue/completion در Mutate. معنای لغو سند شد: لغوِ تماس، کارِ in-flight را برنمی‌گرداند؛ callers با ledger idempotency آشتی می‌کنند (ادعای غیرواقعی دربارهٔ rollback نکردیم).</p>
+<p class="small">قید تک‌نمونه: <code>replicas:1</code> + <code>Recreate</code>؛ مسیر مقیاس‌افزایی بدون lease/fencing صریحاً «تعریف‌نشده» است و کدی ادعای ایمنی توزیع‌شده نمی‌کند.</p>
+</section>
+
+<!-- 14 -->
+<section id="security">
+<h2>۱۴. ارزیابی امنیتی</h2>
+<p>۲۸ یافته در <a href="../evidence/security-findings.csv"><code>security-findings.csv</code></a> (۱۴ مورد افزوده/به‌روز فاز ۲۷). کنترل‌های کلیدی تأییدشده: کلید API به‌صورت SHA-256 hash + مقایسهٔ constant-time؛ شمارهٔ تلفن فقط HMAC-hash + masked؛ جداسازی tenant بدون existence oracle؛ تعامل health بدون auth فقط SERVING؛ redaction لاگ با registry؛ bootstrap key فقط env و هرگز لاگ نمی‌شود.</p>
+<p>اسکن‌های واقعی در خط (داخل کانتینر): <code>govulncheck</code> روی هر دو ماژول (خروجی در <code>phase27/govulncheck-*.txt</code>)، اسکن secret سمت مخزن (بدون یافته خارج از رشته‌های synthetic)، و باتری config fail-closed.</p>
+<p><strong>عیب‌های امنیتی رفع‌شده در این فاز:</strong> panic دو-بستِ کانال در مسیر Upload (کرش فرایند = DoS تصادفی)، نشت goroutine در لغو Download، رقابت StartRunner، نبود سری‌سازی مهاجرت، و باگ DSN دیپلوی محلی. جزئیات و شواهد هر مورد در CSV.</p>
+</section>
+
+<!-- 15 -->
+<section id="crypto">
+<h2>۱۵. رمزنگاری سشن و مدیریت کلید</h2>
+<p>فرمت واقعی پاکت (طول‌پیشونددار): <code>SMB1 ‖ verLen ‖ kek_ver ‖ wrappedLen ‖ wrapped_dek ‖ nonce ‖ ciphertext</code> — AES-256-GCM با DEK per-session و KEK خارجی. باتری adversarial جدید (۷ تست): برش در «همهٔ» طول‌ها، چرخش تک‌بایت در «همهٔ» بایت‌ها، فیلدهای طول متخاصم (verLen/wrappedLen نامعتبر)، نسخهٔ KEK ناشناس، provider مرده (شبیه‌سازی outage KMS)، و معناشناسی چرخش: <code>ReWrap</code> فقط همان-provider است؛ مهاجرت بین-provider = Unseal(old)→Seal(new) و کلید قبلی دیگر blob جدید را نمی‌خواند — همه fail-closed با <code>domain.ErrCrypto</code>. docstring ناهم‌ساز <code>ReWrap</code> («فقط لایهٔ DEK») اصلاح شد.</p>
+<p><strong>KMS:</strong> فقط interface + خطای fail-closed در config. ادعای readiness KMS نداریم؛ production فعلی به provider=file محدود است (محدودیت مستند + تصمیم مالک). هیچ کلید واقعی در مخزن نیست.</p>
+</section>
+
+<!-- 16 -->
+<section id="media">
+<h2>۱۶. استریم رسانه و تحلیل حافظه</h2>
+<p>ادعای bounded streaming با اندازه‌گیری واقعی اثبات شد — نه صرفاً با استدلال <code>io.Pipe</code>. حلقهٔ Upload/Download واقعی SDK در برابر fake transport با حذف نگهداشت سمت سرور، برای پیلود ۳۲ MiB اجرا شد (MemStats با GC-settle، بودجهٔ ۸ MiB):</p>
+<table>
+<tr><th>مسیر</th><th>پیلود</th><th>رشد heap مشاهده‌شده</th><th>بودجه</th><th>نتیجه</th></tr>
+<tr><td>Upload (۲۵۶ part × 128KiB)</td><td>۳۲ MiB</td><td><strong>۴۴۹ KiB</strong></td><td>۸ MiB</td><td><span class="chip pass">PASS — واقعاً bounded</span></td></tr>
+<tr><td>Download (chunked)</td><td>۳۲ MiB</td><td><strong>۱۴۹ KiB</strong></td><td>۸ MiB</td><td><span class="chip pass">PASS — واقعاً bounded</span></td></tr>
+</table>
+<p>همچنین: ردّ اعلان size خارج از [1..2GiB] از همان فریم اول (E2E)، clamp چانک 256KiB آپلود/512KiB دانلود، رگسیون لغو دانلود (آزادسازی worker ظرف 3s)، و تخلیهٔ کامل مسیر آپلود سالم با fail صادقانهٔ upstream. سقف معماری SDK: 512KiB part → 64GiB سقف پروتکلی (سرویس: 2GiB سیاستی).</p>
+</section>
+
+<!-- 17 -->
+<section id="grpc">
+<h2>۱۷. سازگاری gRPC و Protobuf</h2>
+<ul>
+<li><code>buf lint</code> (STANDARD با دو استثنای سندشدهٔ استریم)، <code>buf generate</code> بدون drift (نخ‌های ابزار دقیقاً با سرِ فایل‌های gen مطابق: protoc-gen-go v1.36.5 / go-grpc v1.5.1)، <code>buf breaking</code> نسبت به baseline تثبیت‌شدهٔ همین فاز (<code>service/.proto-baseline/baseline.binpb</code>) — قبل از این فاز baseline موجود نبود و ساختگی جعل نشد.</li>
+<li>نماینده‌های int64 به‌صورت رشتهٔ اعشاری (<code>message_id</code>)؛ Timestamps نوع <code>google.protobuf.Timestamp</code>؛ توکن صفحه‌بندی opaque؛ ErrorInfo.reason پایدار (۲۰ ثابت)؛ رسانهٔ استریم با metadata-first و size declared.</li>
+<li>Reflection به‌صورت پیش‌فرض خاموش (dev-only)؛ health بدون auth فقط وضعیت SERVING؛ MaxRecv/SendMsgSize قابل پیکربندی (پیش‌فرض gRPC 4MiB؛ رسانه از مسیر استریم chunked عبور می‌کند نه پیام‌های حجیم).</li>
+<li>۱۳ چک سیم‌سطح E2E روی کانتینر واقعی (بند ۱۲).</li>
+</ul>
+</section>
+
+<!-- 18 -->
+<section id="observability">
+<h2>۱۸. مشاهده‌پذیری و آمادگی عملیاتی</h2>
+<table>
+<tr><th>قابلیت</th><th>وضعیت واقعی</th></tr>
+<tr><td>لاگ ساخت‌یافته (slog، JSON/text) + رداکشن secret</td><td><span class="chip pass">پياده و تست‌شده</span></td></tr>
+<tr><td>Correlation/request-id در لاگ</td><td><span class="chip pass">پياده (requestIDHandler)</span></td></tr>
+<tr><td>gRPC: زنجیرهٔ Recovery→AuthZ→Timeout + health service</td><td><span class="chip pass">پياده</span></td></tr>
+<tr><td>Trace propagation / metrics / OTLP export</td><td><span class="chip warn">غایب — پیاده‌سازی OTel شروع نشده</span></td></tr>
+<tr><td>خاموشی نرم + سیگنال + تفکیک حالت‌ها</td><td><span class="chip pass">پياده و تست‌شده (app_test + smoke)</span></td></tr>
+</table>
+<p>تصحیح ادعای قبلی: «OTLP نیمه‌وصل» نادرست بود؛ ADR-0012 تصمیم است نه کد. کار باقی‌مانده دقیق: افزودن وابستگی otel-sdk، دو interceptor (unary/stream) برای trace+metrics با label-allowlist سندشدهٔ ADR-0012 (tenant/account UUID، method، status، error class)، و تست رداکشن. به‌دلیل قاعدهٔ «فقط پیاده‌سازی اثبات‌پذیر»، در این فاز انجام نشد تا بدون وندور مصوب ادعای کاذب تولید نکند.</p>
+</section>
+
+<!-- 19 -->
+<section id="k8s">
+<h2>۱۹. بازبینی دیپلوی Kubernetes</h2>
+<p>مانیفست‌ها فقط بازبینی شدند (بدون apply به هیچ کلاستر). یافته‌ها:</p>
+<table>
+<tr><th>مورد</th><th>وضعیت</th></tr>
+<tr><td><code>replicas:1</code> + <code>strategy:Recreate</code> (قید تک‌مالکیت)</td><td><span class="chip pass">صحیح</span></td></tr>
+<tr><td>securityContext: runAsNonRoot/65532، readOnlyRootFilesystem، drop ALL caps، بدون privilege escalation</td><td><span class="chip pass">صحیح و هم‌راستا با تصویر</span></td></tr>
+<tr><td>Probes گRPC روی 50051 (health service ثبت شده)</td><td><span class="chip pass">سازگار</span></td></tr>
+<tr><td>Secretها: DSN/bootstrap/KEK از Secret؛ هیچ مقدار هاردکد</td><td><span class="chip pass">صحیح (placeholder مدیریت‌شده)</span></td></tr>
+<tr><td>Resources (req 256Mi/250m، lim 1Gi/1)</td><td><span class="chip pass">معقول</span></td></tr>
+<tr><td>Job/step مهاجرت جداگانه</td><td><span class="chip warn">غایب — سرویس هنگام Start مهاجرت می‌کند</span></td></tr>
+<tr><td><strong>متغیرهای TLS listener (<code>SUROMESH_LISTEN_TLS_CERT/KEY</code>) mount نشده‌اند</strong></td><td><span class="chip fail">عیب واقعی — config.Validate در کلاستر fail می‌کند (crashloop)</span></td></tr>
+<tr><td>Storage requirement</td><td><span class="chip info">N/A — stateless</span></td></tr>
+</table>
+<p class="small">رفع TLS: mount Secret TLS + دو env؛ برای استراتژی مهاجرت: استفاده از <code>cmd/migrate</code> به‌عنوان initContainer/Job پیش از rollout (الگوی سندشده در deployment.md). چون ADR-0013 هدف نخست container-first است، این‌ها blocker مسیر فعلی نیستند اما پیش از هر نصب K8S باید بسته شوند.</p>
+</section>
+
+<!-- 20 -->
+<section id="bench">
+<h2>۲۰. کارایی و بنچمارک</h2>
+<p>بنچمارک‌ها داخل کانتینر CI با <code>-benchtime 1s</code> محدود و با بلوک «هویت محیط» (Go، کرنل، limits) ثبت می‌شوند: <code>phase27/benchmark-results.txt</code>. مجموعه‌ها: dispatch mutation/read و publish هاب (سرویس) + invoke/mutation/تبدیل رسانه (SDK) + Seal/Unseal/ReWrap پاکت (۱KiB/64KiB/1MiB). اعداد مطلق به میزبان وابسته‌اند و به‌عنوان <em>نقطهٔ مقایسهٔ تاریخی</em> ثبت می‌شوند، نه SLO. نتایج خام و تفسیر در فایل شواهد.</p>
+</section>
+
+<!-- 21 -->
+<section id="risks">
+<h2>۲۱. ریسک‌های باقی‌ماندهٔ تولید</h2>
+<table>
+<tr><th>ریسک</th><th>شدت</th><th>راهکار/پیش‌نیاز</th></tr>
+<tr><td>رفتار زندهٔ Soroush Plus هرگز در CI سنجیده نشده (auth، flood، connection-loss)</td><td>بالا</td><td>اجرای runbook زندهٔ opt-in با اکانت آزمایشی مجاز پیش از Production</td></tr>
+<tr><td>KEK روی فایل (بدون KMS)؛ چرخش کلید دستی</td><td>بالا در مقیاس</td><td>انتخاب وندور KMS؛ adapter از قبل fail-closed است</td></tr>
+<tr><td>تله‌متری از نوع trace/metrics نیست؛ عیب‌یابی تولید log-only</td><td>متوسط</td><td>پیاده‌سازی OTel طبق بند ۱۸ (کار دقیق مشخص)</td></tr>
+<tr><td>تک‌نمونه؛ افقی‌شدن ناممکن تا lease/fencing</td><td>متوسط</td><td>مقیاس عمودی + Recreate؛ طراحی lease در backlog</td></tr>
+<tr><td>مهاجرت در Start سرویس (بدون Job جدا) در نصب‌های K8S</td><td>متوسط</td><td>initContainer/Job با <code>cmd/migrate</code></td></tr>
+<tr><td>K8S manifest بدون TLS env</td><td>متوسط (فقط مسیر K8S)</td><td>mount Secret TLS + env (الگوی آماده)</td></tr>
+</table>
+</section>
+
+<!-- 22 -->
+<section id="external">
+<h2>۲۲. الزامات اعتبارسنجی خارجی</h2>
+<ul>
+<li><strong>اکانت آزمایشی مجاز Soroush Plus</strong> برای runbook زنده (auth flows، flood-wait واقعی، پایداری اتصال، سیشن restore) — طبق مرزهای این فاز انجام نشد و نبود.</li>
+<li><strong>تصمیم وندور KMS</strong> (AWS KMS / Vault / …) برای provider تولیدی.</li>
+<li><strong>باک‌اند تله‌متری</strong> (collector OTLP) برای تکمیل بند ۱۸.</li>
+<li><strong>باز کردن egress</strong> به proxy.golang.org/gcr.io در CI سازمانی اگر میرورها مطلوب نبود (الان سندشده و کارکردی با میرور).</li>
+</ul>
+</section>
+
+<!-- 23 -->
+<section id="repro">
+<h2>۲۳. دستورالعمل بازتولید</h2>
+<pre><code># پیش‌نیاز میزبان: فقط Docker Engine + Compose (+bash یا make)
+git clone &lt;repo&gt; suromesh &amp;&amp; cd suromesh
+
+./scripts/ci.sh ci        # کل خط صلاحیت (fail-fast) — یا: make ci
+# گام‌های مجزا:
+./scripts/ci.sh test         # گیت‌های ایستا + unit + fuzz محدود
+./scripts/ci.sh race         # -race روی SDK و سرویس (با PG واقعی)
+./scripts/ci.sh integration  # persistence + سناریوهای مهاجرت A–E
+./scripts/ci.sh migration    # سناریوها + باتری CLI (مسابقهٔ ۴فرایندی)
+./scripts/ci.sh e2e          # ساخت تصویر تولیدی + ۱۳ چک gRPC سیم‌سطح
+./scripts/ci.sh smoke        # nonroot/بدون shell/stdout/خاموشی نرم
+./scripts/ci.sh security     # govulncheck + کریپتو + secret-scan
+./scripts/ci.sh release      # سیاست release + تفکیک ماژول + vectors
+./scripts/ci.sh clean        # پاک‌سازی پروژه‌های run
+
+# بنچمارک‌ها:
+SUROMESH_CI_E2E_BOOTSTRAP_KEY=x docker compose -f service/deploy/compose/ci.compose.yml \
+  --profile test run --rm ci bash service/scripts/ci/bench.sh</code></pre>
+<p class="small">لاگ کامل هر اجرا: <code>service/docs/audit/evidence/phase27/ci-run.log</code> · JUnit: <code>phase27/junit/*.xml</code> · بررسی شکست‌ها و راهنمای تصاویر: <code>service/docs/operations/docker-ci.md</code>.</p>
+</section>
+
+<!-- 24 -->
+<section id="checklist">
+<h2>۲۴. چک‌لیست انتشار</h2>
+<table>
+<tr><th>بند</th><th>وضعیت</th></tr>
+<tr><td>ارکستراسیون تست بومی Docker از checkout تمیز</td><td><span class="chip pass">انجام</span></td></tr>
+<tr><td>Integration واقعی PostgreSQL (نه skip)</td><td><span class="chip pass">انجام — ۱۱ تست</span></td></tr>
+<tr><td>مهاجرت‌ها: نصب تازه/idempotency/شکست/ارتقا/همزمان</td><td><span class="chip pass">انجام — A تا E</span></td></tr>
+<tr><td>آشتی حساب‌داری انطباق SDK</td><td><span class="chip pass">انجام — ۷۳=۳۳+۱۲+۴+۱۵+۹</span></td></tr>
+<tr><td>رفتارهای حیاتی AccountRunner</td><td><span class="chip pass">۱۱ قرارداد پین‌شده</span></td></tr>
+<tr><td>امنیت کانتینر با شواهد واقعی</td><td><span class="chip pass">smoke + اسکن‌ها</span></td></tr>
+<tr><td>اجرای تصویر تولیدی در Docker</td><td><span class="chip pass">e2e + smoke</span></td></tr>
+<tr><td>smoke gRPC روی کانتینر واقعی</td><td><span class="chip pass">e2eclient</span></td></tr>
+<tr><td>شواهد Docker-based تولیدشده</td><td><span class="chip pass">phase27/*</span></td></tr>
+<tr><td>گزارش فارسی اعتبارسنجی‌شده</td><td><span class="chip pass">این سند + check-audit-report</span></td></tr>
+<tr><td>Blockerهای باقی‌مانده صادقانه مستند</td><td><span class="chip pass">بند ۲۱–۲۲</span></td></tr>
+<tr><td>بدون deploy/push/انتشار/اکانت زندهٔ غیرمجاز</td><td><span class="chip pass">تأیید — هیچ عملیات خارجی رخ نداد</span></td></tr>
+<tr><td>حذف replace توسعه‌ای پیش از build انتشار (RELEASE_BUILD=1)</td><td><span class="chip warn">روی مالک — گیت می‌گذارد؛ طبق رویهٔ داخل go.mod</span></td></tr>
+</table>
+</section>
+
+<!-- 25 -->
+<section id="recommendation">
+<h2>۲۵. توصیهٔ نهایی مهندسی</h2>
+<p><strong>ورود به Staging کنترل‌شده تأیید می‌شود</strong> با چهار شرطِ مستند: (۱) هیچ مسیر production تا اجرای موفق runbook زندهٔ opt-in باز نشود؛ (۲) production تا تصمیم KMS فقط با KEK فایل + فرآیند مدیریت کلید مستند؛ (۳) K8S فقط پس از رفع TLS-env و Job مهاجرت؛ (۴) OTel پیش از Production واقعی. کیفیت کد پس از این فاز برای staging مناسب است: خط CI تمام‌داخل‌کانتینر با شکست‌های قطعی، مهاجرت‌های سری‌سازی‌شده، پوشش رفتاری حیاتی runtime، و شواهد اندازه‌گیری‌شدهٔ حافظه/امنیت.</p>
+<p class="small">محصولات: ماتریس‌ها و شواهد در <code>service/docs/audit/evidence/</code> · گزارش‌های قبلی: <code>fa/</code> · راهنمای عملیات: <code>service/docs/operations/docker-ci.md</code> · گزارش‌سنج: <code>bash scripts/audit/check-audit-report.sh</code></p>
+</section>
+
+</main>
+</body>
+</html>

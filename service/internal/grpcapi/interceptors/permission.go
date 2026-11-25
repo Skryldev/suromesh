@@ -9,19 +9,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-// defaultPermissions maps service names to the required permission.
-var defaultPermissions = map[string]string{
-	"/suromesh.service.v1.AuthenticationService/": "auth:write",
-	"/suromesh.service.v1.AccountService/":        "accounts:write",
-	"/suromesh.service.v1.SessionService/":        "sessions:write",
-	"/suromesh.service.v1.ConnectionService/":     "accounts:write",
-	"/suromesh.service.v1.UserService/":           "messaging:read",
-	"/suromesh.service.v1.DialogService/":         "dialogs:read",
-	"/suromesh.service.v1.MessagingService/":      "messaging:read",
-	"/suromesh.service.v1.UpdateService/":         "streams:read",
-	"/suromesh.service.v1.MediaService/":          "media:transfer",
-}
-
 // resolvePermission finds the required permission for a full method name
 // ("/pkg.Service/Method"). Send/delete-family operations require the
 // write permission (the map's prefix match is refined here).

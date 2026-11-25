@@ -1,0 +1,163 @@
+# SuroMesh Docker-native CI/CD orchestration (Phase 27).
+#
+# Profiles (activate with --profile):
+#   test         static gates + unit + fuzz seeds + proto tooling (service: ci)
+#   race         race-detector suite (service: ci)
+#   integration  persistence integration tests + migration scenarios
+#                (services: ci + postgres-test)
+#   migration    multi-process migrate-CLI race scenarios (ci + postgres-test)
+#   e2e          service image build + gRPC E2E against the real container
+#                (services: ci + postgres-test + service)
+#   security     govulncheck + crypto battery + secret scan (ci)
+#   release      release policy + artifact validation (ci)
+#
+# Isolation model:
+#   - Every run uses its own compose project name (scripts/ci.sh passes
+#     -p suromesh-ci-<runid>) → isolated networks, containers and
+#     non-external volumes. A failed run cannot contaminate the next one;
+#     `scripts/ci.sh clean` removes leftovers.
+#   - postgres-test has NO persistent volume: database state lives in the
+#     ephemeral container layer and dies with `compose down -v`. Test
+#     data is disposable by construction; production databases are never
+#     touched.
+#   - Only caches are external named volumes (module/build caches), safe
+#     to share across runs (Go caches are concurrency-safe) and never
+#     removed by `compose down -v`.
+#
+# Secrets: none. The postgres credentials below are throwaway test-only
+# values for a database that is created and destroyed per run on an
+# isolated network (never exposed on host ports). The E2E bootstrap key
+# and KEK are generated fresh per run by scripts/ci.sh from /dev/urandom
+# and never committed.
+#
+# Execution model: `docker compose run --rm ci <script>`; every script
+# exits non-zero on failure (no pipes without pipefail). The CI runner
+# image runs as root deliberately: it is an ephemeral, socket-less,
+# network-isolated container operating on the bind-mounted checkout
+# (non-root runtime images are enforced in the service/Dockerfile via
+# distroless nonroot and validated in the smoke profile).
+
+name: suromesh-ci
+
+x-go-caches: &go-caches
+  volumes:
+    - suromesh-ci-gomod:/go/pkg/mod
+    - suromesh-ci-gobuild:/root/.cache/go-build
+
+services:
+  ci:
+    build:
+      context: ../../../ # calibrated: compose v5.7.1 here resolves rel. paths 1 level shallower than the compose spec
+      dockerfile: service/docker/Dockerfile.ci
+    image: suromesh-ci-runner:phase27
+    profiles:
+      - test
+      - race
+      - integration
+      - migration
+      - e2e
+      - security
+      - release
+    working_dir: /src
+    volumes:
+      - ../../../:/src # repo root (calibrated, see context note)
+      - type: volume
+        source: suromesh-ci-gomod
+        target: /go/pkg/mod
+      - type: volume
+        source: suromesh-ci-gobuild
+        target: /root/.cache/go-build
+    environment:
+      # Throwaway per-run test database (never a production credential).
+      TEST_DATABASE_DSN: "postgres://suromesh:suromesh-test-only@postgres-test:5432/suromesh_ci?sslmode=disable"
+      TEST_DATABASE_ADMIN_DSN: "postgres://suromesh:suromesh-test-only@postgres-test:5432/postgres?sslmode=disable"
+      E2E_TARGET: "service:50051"
+      E2E_BOOTSTRAP_KEY: "${SUROMESH_CI_E2E_BOOTSTRAP_KEY:?generated per run by scripts/ci.sh}"
+      # Bounded fuzz campaigns (seconds per target) — explicit budget, never unbounded.
+      FUZZTIME_SECONDS: "15"
+      GOFLAGS: "-mod=readonly"
+    # postgres-test is active in every profile, so the ci container can
+    # hard-gate on database HEALTH (never trust "container running").
+    # Database scripts keep their own explicit readiness loop as well.
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    # No ports published: this container talks only inside the project network.
+    networks: [ci-net]
+    mem_limit: 4g
+
+  postgres-test:
+    image: postgres:17-alpine
+    # Active for EVERY profile: the race/unit/security steps run the
+    # persistence suite WITH a real database (stronger evidence than
+    # skipping), and scenario E under -race needs it too.
+    profiles:
+      - test
+      - race
+      - integration
+      - migration
+      - e2e
+      - security
+      - release
+    environment:
+      POSTGRES_DB: suromesh_ci
+      POSTGRES_USER: suromesh
+      POSTGRES_PASSWORD: suromesh-test-only
+      # Fast, deterministic, disposable: no data survives the run.
+      POSTGRES_INITDB_ARGS: "--no-sync"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U suromesh -d suromesh_ci"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 3s
+    tmpfs:
+      - /var/lib/postgresql/data:size=1g,mode=0755
+    networks: [ci-net]
+    mem_limit: 1g
+
+  service:
+    # Production image under test (multi-stage distroless build).
+    build:
+      context: ../../../ # calibrated: compose v5.7.1 here resolves rel. paths 1 level shallower than the compose spec
+      dockerfile: service/Dockerfile
+    image: suromesh-service:phase27-e2e
+    profiles:
+      - e2e
+    environment:
+      SUROMESH_LISTEN_ADDR: ":50051"
+      SUROMESH_LISTEN_PLAINTEXT_DEV: "true" # container-network-only plaintext (e2e profile)
+      SUROMESH_STORAGE_POSTGRES_DSN: "postgres://suromesh:suromesh-test-only@postgres-test:5432/suromesh_ci?sslmode=disable"
+      SUROMESH_CRYPTO_PROVIDER: "file"
+      SUROMESH_CRYPTO_FILE_KEY: "/run/secrets/e2e_kek"
+      SUROMESH_AUTH_BOOTSTRAP_KEY: "${SUROMESH_CI_E2E_BOOTSTRAP_KEY:?generated per run by scripts/ci.sh}"
+      SUROMESH_AUTH_BOOTSTRAP_TENANT: "e2e-bootstrap"
+      SUROMESH_LOG_LEVEL: "info"
+      SUROMESH_LOG_FORMAT: "json"
+    secrets:
+      - e2e_kek
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    networks: [ci-net]
+    mem_limit: 512m
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=0777
+
+networks:
+  ci-net:
+    driver: bridge
+    internal: false # module proxy + vuln DB access required; no host ports published
+
+volumes:
+  suromesh-ci-gomod:
+    external: true
+    name: suromesh-ci-gomod
+  suromesh-ci-gobuild:
+    external: true
+    name: suromesh-ci-gobuild
+
+secrets:
+  e2e_kek:
+    file: ./.e2e-kek.bin # generated fresh per run by scripts/ci.sh (never committed)

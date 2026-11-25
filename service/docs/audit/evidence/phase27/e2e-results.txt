@@ -1,0 +1,15 @@
+PASS readiness                       
+PASS unauthenticated-rejected        
+PASS bad-key-rejected                
+PASS bind-account                    
+PASS bind-idempotent                 
+PASS get-account-tenant-scoped       
+PASS list-accounts                   
+PASS session-status-absent           
+PASS authz-state-unauthorized        
+PASS unknown-account-not-found       
+     sendcode honest failure: code=FailedPrecondition reason=ACCOUNT_NOT_CONNECTED
+PASS sendcode-honest-failure         
+PASS oversize-upload-rejected        
+PASS remove-account-shred            
+E2E RESULT: ALL PASSED

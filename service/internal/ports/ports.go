@@ -150,6 +150,10 @@ type AccountRecord struct {
 type TenantRepository interface {
 	Create(ctx context.Context, name string) (id string, err error)
 	Get(ctx context.Context, id string) (TenantRecord, error)
+	// GetOrCreate resolves a tenant by NAME (unique), creating the row
+	// when absent. The bootstrap flow uses this to materialize the
+	// configured bootstrap tenant and obtain its UUID.
+	GetOrCreate(ctx context.Context, name string) (id string, err error)
 }
 
 // TenantRecord is the durable tenant row.

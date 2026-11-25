@@ -1,0 +1,12 @@
+=== RUN   TestAuthN_MissingKeyFails
+--- PASS: TestAuthN_MissingKeyFails (0.00s)
+=== RUN   TestAuthN_BadKeyFails
+--- PASS: TestAuthN_BadKeyFails (0.00s)
+=== RUN   TestAuthZ_MissingPermissionDenied
+--- PASS: TestAuthZ_MissingPermissionDenied (0.01s)
+=== RUN   TestHealth_ServedWithoutCredentials
+--- PASS: TestHealth_ServedWithoutCredentials (0.00s)
+=== RUN   TestDeadline_CallerDeadlineWins
+--- PASS: TestDeadline_CallerDeadlineWins (0.00s)
+PASS
+ok  	github.com/Skryldev/suromesh/service/internal/grpcapi/server	1.032s

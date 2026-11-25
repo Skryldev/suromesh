@@ -1,0 +1,28 @@
+=== RUN   TestEnvelope_AdversarialTruncation
+--- PASS: TestEnvelope_AdversarialTruncation (0.00s)
+=== RUN   TestEnvelope_AdversarialByteFlip
+--- PASS: TestEnvelope_AdversarialByteFlip (0.00s)
+=== RUN   TestEnvelope_MalformedLengthFields
+--- PASS: TestEnvelope_MalformedLengthFields (0.00s)
+=== RUN   TestEnvelope_UnknownKEKVersion
+--- PASS: TestEnvelope_UnknownKEKVersion (0.00s)
+=== RUN   TestEnvelope_ProviderUnavailableFailsClosed
+--- PASS: TestEnvelope_ProviderUnavailableFailsClosed (0.00s)
+=== RUN   TestEnvelope_RotationSemantics
+--- PASS: TestEnvelope_RotationSemantics (0.00s)
+=== RUN   TestEnvelope_SealUnsealRoundTrip
+--- PASS: TestEnvelope_SealUnsealRoundTrip (0.00s)
+=== RUN   TestEnvelope_TamperFailsClosed
+--- PASS: TestEnvelope_TamperFailsClosed (0.00s)
+=== RUN   TestEnvelope_WrongKeyFailsClosed
+--- PASS: TestEnvelope_WrongKeyFailsClosed (0.00s)
+=== RUN   TestEnvelope_RotationReWrap
+--- PASS: TestEnvelope_RotationReWrap (0.00s)
+=== RUN   TestFileKeyProvider_Errors
+--- PASS: TestFileKeyProvider_Errors (0.00s)
+=== RUN   TestKMSProvider_FailsClosed
+--- PASS: TestKMSProvider_FailsClosed (0.00s)
+=== RUN   TestEnvelope_EmptyPlaintextRejected
+--- PASS: TestEnvelope_EmptyPlaintextRejected (0.00s)
+PASS
+ok  	github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography	1.015s

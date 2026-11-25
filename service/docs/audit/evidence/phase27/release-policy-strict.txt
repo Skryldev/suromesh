@@ -1,0 +1,2 @@
+RELEASE POLICY VIOLATION: replace directive(s) present in /src/service/go.mod
+Remove the development replace (see the comment in service/go.mod)

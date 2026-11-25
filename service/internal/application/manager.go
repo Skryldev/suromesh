@@ -102,6 +102,7 @@ func (h *updateHub) close() {
 type Manager struct {
 	mu        sync.RWMutex
 	runners   map[string]*Runner // key: account UUID
+	starting  map[string]*startFlight
 	factor    ports.UpstreamFactory
 	vault     ports.SessionVault
 	repo      ports.SessionRepository
@@ -109,6 +110,15 @@ type Manager struct {
 	streamBuf int
 	readCap   int
 	mutQueue  int
+}
+
+// startFlight coordinates concurrent StartRunner calls for the SAME
+// account: exactly one upstream client is constructed; losers observe the
+// winner's outcome instead of racing to double-create.
+type startFlight struct {
+	done   chan struct{}
+	runner *Runner // set when the start succeeded
+	err    error   // set when the start failed
 }
 
 // ManagerConfig bounds manager-wide defaults.
@@ -132,6 +142,7 @@ func NewManager(factor ports.UpstreamFactory, vault ports.SessionVault,
 	}
 	return &Manager{
 		runners:   map[string]*Runner{},
+		starting:  map[string]*startFlight{},
 		factor:    factor,
 		vault:     vault,
 		repo:      repo,
@@ -143,7 +154,10 @@ func NewManager(factor ports.UpstreamFactory, vault ports.SessionVault,
 }
 
 // StartRunner creates and starts the runtime for one account. Duplicate
-// creation returns ErrAlreadyExists deterministically.
+// creation returns ErrAlreadyExists deterministically. Concurrent calls
+// for the same account share one start attempt: exactly one client is
+// constructed (the in-flight guard below), losers get ErrAlreadyExists
+// on success or the underlying start error on failure.
 func (m *Manager) StartRunner(ctx context.Context, cfg RunnerConfig) (*Runner, error) {
 	key := string(cfg.AccountID)
 	m.mu.Lock()
@@ -152,23 +166,47 @@ func (m *Manager) StartRunner(ctx context.Context, cfg RunnerConfig) (*Runner, e
 		return nil, fmt.Errorf("%w: runner for %s already exists",
 			domain.ErrAlreadyExists, cfg.AccountID)
 	}
+	if flight, inFlight := m.starting[key]; inFlight {
+		m.mu.Unlock()
+		select {
+		case <-flight.done:
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+		if flight.runner != nil {
+			return nil, fmt.Errorf("%w: runner for %s already exists",
+				domain.ErrAlreadyExists, cfg.AccountID)
+		}
+		return nil, flight.err
+	}
+	flight := &startFlight{done: make(chan struct{})}
+	m.starting[key] = flight
 	m.mu.Unlock()
+
+	finish := func(r *Runner, err error) (*Runner, error) {
+		m.mu.Lock()
+		flight.runner, flight.err = r, err
+		delete(m.starting, key)
+		close(flight.done)
+		m.mu.Unlock()
+		return r, err
+	}
 
 	r := NewRunner(cfg, m.factor, m.vault, m.repo)
 	if err := r.Start(ctx); err != nil {
-		return nil, err
+		return finish(nil, err)
 	}
 
 	m.mu.Lock()
 	if _, dup := m.runners[key]; dup { // re-check under lock
 		m.mu.Unlock()
 		_ = r.Stop(ctx)
-		return nil, fmt.Errorf("%w: runner for %s already exists",
-			domain.ErrAlreadyExists, cfg.AccountID)
+		return finish(nil, fmt.Errorf("%w: runner for %s already exists",
+			domain.ErrAlreadyExists, cfg.AccountID))
 	}
 	m.runners[key] = r
 	m.mu.Unlock()
-	return r, nil
+	return finish(r, nil)
 }
 
 // Get resolves a runner within the tenant scope. A runner from another

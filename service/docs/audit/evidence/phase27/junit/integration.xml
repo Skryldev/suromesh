@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="6" failures="0" errors="0" time="1.181077">
+	<testsuite tests="6" failures="0" time="1.181000" name="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" timestamp="2026-11-24T18:09:45Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestPersistence_TenantLifecycle" time="0.020000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestPersistence_AccountScopedAccess" time="0.030000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestPersistence_SessionStoreLoad" time="0.030000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestPersistence_IdempotencyClaimAndRace" time="0.030000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestPersistence_IdempotencyConcurrentClaims" time="0.040000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestPersistence_AuditRecorded" time="0.030000"></testcase>
+	</testsuite>
+</testsuites>

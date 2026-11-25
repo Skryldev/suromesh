@@ -5,8 +5,10 @@ package server_test
 // bounded buffers, deadline behavior, media validation.
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"testing"
 	"time"
@@ -17,6 +19,7 @@ import (
 	v1 "github.com/Skryldev/suromesh/service/gen/suromesh/service/v1"
 	"github.com/Skryldev/suromesh/service/internal/application"
 	"github.com/Skryldev/suromesh/service/internal/domain"
+	"github.com/Skryldev/suromesh/service/internal/ports"
 )
 
 // streamingFixture: a fixture whose account has a STARTED runner with a
@@ -232,3 +235,132 @@ var (
 	_ = io.EOF
 	_ = errors.New
 )
+
+// ---- Phase 27 media-path regressions ---------------------------------------
+//
+// These tests force the UPLOAD WORKER GOROUTINE to run to completion and
+// the DOWNLOAD worker to be released on client cancel. They pin two Phase
+// 27 fixes in handlers/media.go:
+//   1. `done` is closed exactly once by the upload worker (the earlier
+//      stray goroutine made any completed upload a nondeterministic
+//      close-of-closed-channel process crash and left `<-done` decoupled
+//      from worker completion);
+//   2. a cancelled download closes the pipe so the SDK-side writer
+//      unblocks (no leaked worker goroutine / read slot).
+
+func TestMediaUpload_ScriptedSuccessCompletesWorker(t *testing.T) {
+	fx := streamingFixture(t)
+	client := fx.factory.ClientFor(domain.AccountID(fx.boundID))
+	if client == nil {
+		t.Fatal("fake client missing")
+	}
+	const payload = "hello-media"
+	var uploaded []byte
+	client.OnUploadMedia = func(spec ports.UploadSpec, r io.Reader) (domain.Message, error) {
+		b, err := io.ReadAll(r)
+		if err != nil {
+			return domain.Message{}, err
+		}
+		uploaded = b
+		peer, _ := domain.ParsePeerID("user:42")
+		return domain.Message{ID: 7, PeerID: peer, Text: spec.FileName}, nil
+	}
+
+	ctx, cancel := context.WithTimeout(authed(context.Background()), 5*time.Second)
+	defer cancel()
+	stream, err := fx.mediaClient().UploadMedia(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := stream.Send(&v1.UploadMediaFrame{Frame: &v1.UploadMediaFrame_Start{Start: &v1.UploadMediaStart{
+		AccountId: fx.boundID, Peer: &v1.PeerRef{Ref: &v1.PeerRef_Self{Self: true}},
+		SizeBytes: int64(len(payload)), FileName: "f.bin", MimeType: "application/octet-stream",
+	}}}); err != nil {
+		t.Fatal(err)
+	}
+	if err := stream.Send(&v1.UploadMediaFrame{Frame: &v1.UploadMediaFrame_Chunk{Chunk: []byte(payload)}}); err != nil {
+		t.Fatal(err)
+	}
+	resp, err := stream.CloseAndRecv()
+	if err != nil {
+		t.Fatalf("scripted upload must succeed end-to-end: %v", err)
+	}
+	if resp.Message == nil || resp.Message.MessageId != "7" {
+		t.Fatalf("response message mismatch: %+v", resp.Message)
+	}
+	if string(uploaded) != payload {
+		t.Fatalf("worker received %q, want %q (full streaming path)", uploaded, payload)
+	}
+}
+
+func TestMediaUpload_ScriptedWorkerFailureMapped(t *testing.T) {
+	fx := streamingFixture(t)
+	client := fx.factory.ClientFor(domain.AccountID(fx.boundID))
+	client.OnUploadMedia = func(spec ports.UploadSpec, r io.Reader) (domain.Message, error) {
+		// Drain the pipe so the handler's writes never block, then fail
+		// like an upstream rejection would.
+		_, _ = io.Copy(io.Discard, r)
+		return domain.Message{}, fmt.Errorf("%w: scripted upstream rejection", domain.ErrUpstreamUnavailable)
+	}
+
+	ctx, cancel := context.WithTimeout(authed(context.Background()), 5*time.Second)
+	defer cancel()
+	stream, err := fx.mediaClient().UploadMedia(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = stream.Send(&v1.UploadMediaFrame{Frame: &v1.UploadMediaFrame_Start{Start: &v1.UploadMediaStart{
+		AccountId: fx.boundID, Peer: &v1.PeerRef{Ref: &v1.PeerRef_Self{Self: true}},
+		SizeBytes: 4, FileName: "f.bin", MimeType: "application/octet-stream",
+	}}})
+	_ = stream.Send(&v1.UploadMediaFrame{Frame: &v1.UploadMediaFrame_Chunk{Chunk: []byte("data")}})
+	if _, err := stream.CloseAndRecv(); err == nil {
+		t.Fatal("scripted upstream failure must surface honestly")
+	}
+	// The worker completed (error propagated); the process did not crash
+	// on a double close — that is the assertion (a panic here fails the
+	// whole test binary).
+}
+
+func TestMediaDownload_ClientCancelReleasesWorker(t *testing.T) {
+	fx := streamingFixture(t)
+	client := fx.factory.ClientFor(domain.AccountID(fx.boundID))
+	workerDone := make(chan struct{})
+	var wrote int
+	client.OnDownloadMedia = func(ref domain.PeerRef, id int64, w io.Writer) error {
+		defer close(workerDone)
+		// Write until the consumer side goes away (pipe closed): exactly
+		// the shape of a long real download interrupted by the client.
+		payload := bytes.Repeat([]byte{0xAB}, 1024)
+		for {
+			if _, err := w.Write(payload); err != nil {
+				return err // pipe closed by cancel path → unblocks
+			}
+			wrote++
+		}
+	}
+
+	ctx, cancel := context.WithTimeout(authed(context.Background()), 5*time.Second)
+	stream, err := fx.mediaClient().DownloadMedia(ctx, &v1.DownloadMediaRequest{
+		AccountId: fx.boundID, Peer: &v1.PeerRef{Ref: &v1.PeerRef_Self{Self: true}}, MessageId: "1",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Read a couple of chunks, then cancel mid-stream.
+	for i := 0; i < 2; i++ {
+		if _, err := stream.Recv(); err != nil {
+			t.Fatalf("chunk %d: %v", i, err)
+		}
+	}
+	cancel()
+	// The worker must be released (pipe closed) — bounded wait.
+	select {
+	case <-workerDone:
+		if wrote < 2 {
+			t.Fatalf("worker wrote only %d blocks", wrote)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("download worker leaked: pipe was not closed on client cancel")
+	}
+}

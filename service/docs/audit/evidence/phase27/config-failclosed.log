@@ -1,0 +1,24 @@
+=== RUN   TestLoad_Defaults
+--- PASS: TestLoad_Defaults (0.00s)
+=== RUN   TestLoad_EnvOverridesDefaults
+--- PASS: TestLoad_EnvOverridesDefaults (0.00s)
+=== RUN   TestLoad_KMSProviderFailsClosed
+--- PASS: TestLoad_KMSProviderFailsClosed (0.00s)
+=== RUN   TestLoad_StorageRequired
+--- PASS: TestLoad_StorageRequired (0.00s)
+=== RUN   TestLoad_BootstrapKeyValidation
+--- PASS: TestLoad_BootstrapKeyValidation (0.00s)
+=== RUN   TestLoad_UnknownKeysIgnored
+--- PASS: TestLoad_UnknownKeysIgnored (0.00s)
+=== RUN   TestValidate_TLSRules
+=== RUN   TestValidate_TLSRules/no_tls_and_no_dev_flag
+=== RUN   TestValidate_TLSRules/half_tls_pair
+--- PASS: TestValidate_TLSRules (0.00s)
+    --- PASS: TestValidate_TLSRules/no_tls_and_no_dev_flag (0.00s)
+    --- PASS: TestValidate_TLSRules/half_tls_pair (0.00s)
+=== RUN   TestValidate_Ranges
+--- PASS: TestValidate_Ranges (0.00s)
+=== RUN   TestConfig_LogValueShapeOnly
+--- PASS: TestConfig_LogValueShapeOnly (0.00s)
+PASS
+ok  	github.com/Skryldev/suromesh/service/internal/config	1.011s

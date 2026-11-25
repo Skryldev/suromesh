@@ -28,10 +28,6 @@ func NewBundle() *Bundle {
 
 // ---- accounts ----------------------------------------------------------------
 
-type accountRow struct {
-	rec ports.AccountRecord
-}
-
 type FakeAccounts struct {
 	mu      sync.Mutex
 	byID    map[string]ports.AccountRecord

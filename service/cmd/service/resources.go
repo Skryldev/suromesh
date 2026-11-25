@@ -47,8 +47,15 @@ func (r *storageResource) Start(ctx context.Context) error {
 		pool.Close()
 		return err
 	}
+	// Fail closed against an incompatible schema (manual tampering,
+	// partial restore): never serve against a database that does not
+	// match the migration set.
+	if err := persistence.VerifySchema(ctx, pool); err != nil {
+		pool.Close()
+		return err
+	}
 	r.pool = persistence.NewStore(pool)
-	r.log.Info("storage ready (migrations applied)")
+	r.log.Info("storage ready (migrations applied, schema verified)")
 	return nil
 }
 
@@ -140,14 +147,25 @@ func (r *runtimeResource) Start(ctx context.Context) error {
 	}
 	store := r.storagePool()
 
-	// Credential authenticator (overrides + storage-backed).
+	// Credential authenticator (overrides + storage-backed). The
+	// bootstrap override is registered with the tenant's durable UUID:
+	// the configured bootstrap tenant NAME is materialized in the
+	// tenants table (GetOrCreate) because every persistence query
+	// scopes by tenant UUID — a name-only principal would fail every
+	// request (found by the Phase 27 E2E wire battery).
 	authN := interceptors.NewCredentialAuthenticator(store.Credentials)
 	if r.cfg.Auth.BootstrapKey != "" {
-		authN.RegisterOverride("bootstrap", "bootstrap", r.cfg.Auth.BootstrapKey,
+		tenantUUID, err := store.Tenants.GetOrCreate(ctx, r.cfg.Auth.BootstrapTenant)
+		if err != nil {
+			return fmt.Errorf("bootstrap tenant materialization: %w", err)
+		}
+		authN.RegisterOverride("bootstrap", tenantUUID, r.cfg.Auth.BootstrapKey,
 			[]string{"accounts:read", "accounts:write", "auth:write", "messaging:read",
 				"messaging:write", "dialogs:read", "media:transfer", "streams:read",
 				"sessions:write"})
-		r.log.Info("bootstrap credential registered", slog.String("tenant", r.cfg.Auth.BootstrapTenant))
+		r.log.Info("bootstrap credential registered",
+			slog.String("tenant", r.cfg.Auth.BootstrapTenant),
+			slog.String("tenant_uuid", tenantUUID))
 	}
 
 	// Account manager (factory + vault + session repo).

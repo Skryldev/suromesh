@@ -71,9 +71,10 @@ func (h *RuntimeHandlers) UploadMedia(stream v1.MediaService_UploadMediaServer) 
 	done := make(chan struct{})
 	var uploadErr error
 
-	go func() {
-		defer close(done)
-	}()
+	// done is closed EXACTLY ONCE by the upload worker below (its defer).
+	// (Phase 27 fix: an earlier stray goroutine also closed `done`, a
+	// nondeterministic close-of-closed-channel panic on the upload path,
+	// and decoupled `<-done` from actual worker completion.)
 
 	// Read the first frame (metadata).
 	frame, ferr := stream.Recv()
@@ -161,8 +162,6 @@ func (h *RuntimeHandlers) UploadMedia(stream v1.MediaService_UploadMediaServer) 
 	return stream.SendAndClose(&v1.UploadMediaResponse{Message: convertDomainMessage(res.msg)})
 }
 
-type portsUploadSpecT = ports.UploadSpec
-
 type uploadResult struct {
 	msg domain.Message
 	err error
@@ -235,6 +234,13 @@ func (h *RuntimeHandlers) DownloadMedia(req *v1.DownloadMediaRequest, stream v1.
 		n, rerr := pr.Read(buf)
 		if n > 0 {
 			if serr := stream.Send(&v1.DownloadChunk{Data: buf[:n], Offset: offset}); serr != nil {
+				// Transport closed (client cancelled/disconnected): unblock
+				// the worker (it is writing into the pipe) so its goroutine
+				// and the read slot are released, then report transport
+				// closure. Without this the worker would block forever.
+				_ = pw.CloseWithError(fmt.Errorf("%w: client ended download stream",
+					context.Canceled))
+				<-errC
 				return nil // transport closed
 			}
 			offset += int64(n)

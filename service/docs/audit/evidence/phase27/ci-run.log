@@ -1,0 +1,280 @@
+== ci-image-build 2026-11-24T19:17:31Z
+ Image suromesh-ci-runner:phase27 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 554B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile.ci
+#2 transferring dockerfile: 3.01kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/golang:1.26-alpine
+#3 DONE 1.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [ 1/10] FROM docker.io/library/golang:1.26-alpine@sha256:ecb67f987aa1a57794c91d19ade7ae0209f2f0f5496aaef9e6ae85ddf92d02ab
+#5 resolve docker.io/library/golang:1.26-alpine@sha256:ecb67f987aa1a57794c91d19ade7ae0209f2f0f5496aaef9e6ae85ddf92d02ab 0.0s done
+#5 DONE 0.0s
+
+#6 [ 5/10] RUN go install github.com/bufbuild/buf/cmd/buf@v1.75.0
+#6 CACHED
+
+#7 [ 3/10] RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.5
+#7 CACHED
+
+#8 [ 4/10] RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
+#8 CACHED
+
+#9 [ 7/10] RUN go install gotest.tools/gotestsum@v1.13.0
+#9 CACHED
+
+#10 [ 2/10] RUN apk add --no-cache         bash git jq curl openssl postgresql-client coreutils ca-certificates         gcc musl-dev     && git config --global --add safe.directory '*'     && git config --global user.email "ci@suromesh.invalid"     && git config --global user.name "SuroMesh CI"
+#10 CACHED
+
+#11 [ 6/10] RUN go install honnef.co/go/tools/cmd/staticcheck@v0.8.2
+#11 CACHED
+
+#12 [ 8/10] RUN go install golang.org/x/vuln/cmd/govulncheck@v1.10.0
+#12 CACHED
+
+#13 [ 9/10] RUN apk add --no-cache grep
+#13 CACHED
+
+#14 [10/10] WORKDIR /src
+#14 CACHED
+
+#15 exporting to image
+#15 exporting layers done
+#15 exporting manifest sha256:08758f2f59beac6478e5eaf0a4bc6d8137879d21334f4691eebd0f4ad3c42fac done
+#15 exporting config sha256:2041fcc94b502e4a93722663a8abb1198233ce664f9c29dc3eefc3ee9c5a8188 done
+#15 exporting attestation manifest sha256:5a55ca2847bba65b7473626d0ffad990df9761819c527f82b1ef3ae311ac3b5d done
+#15 exporting manifest list sha256:b144791ebd777520156742d822b87fd6e5bc52fbdd5766c6605b2b3f6a257973 done
+#15 naming to docker.io/library/suromesh-ci-runner:phase27 done
+#15 unpacking to docker.io/library/suromesh-ci-runner:phase27 done
+#15 DONE 0.0s
+
+#16 resolving provenance for metadata file
+#16 DONE 0.0s
+ Image suromesh-ci-runner:phase27 Built 
+== ci-image-build rc=0 duration=2s
+== static-gates 2026-11-24T19:17:33Z
+ Network suromesh-ci-20261124-191731-1584383_ci-net Creating 
+ Network suromesh-ci-20261124-191731-1584383_ci-net Created 
+ Container suromesh-ci-20261124-191731-1584383-postgres-test-1 Creating 
+ Container suromesh-ci-20261124-191731-1584383-postgres-test-1 Created 
+ Container suromesh-ci-20261124-191731-1584383-postgres-test-1 Starting 
+ Container suromesh-ci-20261124-191731-1584383-postgres-test-1 Started 
+ Container suromesh-ci-20261124-191731-1584383-postgres-test-1 Waiting 
+ Container suromesh-ci-20261124-191731-1584383-postgres-test-1 Healthy 
+ Container suromesh-ci-20261124-191731-1584383-ci-run-69c4fd96bd04 Creating 
+ Container suromesh-ci-20261124-191731-1584383-ci-run-69c4fd96bd04 Created 
+go: go version go1.26.11 linux/amd64
+buf: 1.75.0
+protoc-gen-go: protoc-gen-go v1.36.5
+protoc-gen-go-grpc: protoc-gen-go-grpc 1.5.1
+staticcheck: staticcheck 2026.2.2 (0.8.2)
+govulncheck: Go: go1.26.11
+gotestsum: gotestsum version v1.13.0
+psql: psql (PostgreSQL) 18.7
+STEP gofmt BEGIN  2026-11-24T19:17:41Z
+STEP gofmt END    2026-11-24T19:17:41Z rc=0
+STEP go-mod-integrity BEGIN  2026-11-24T19:17:41Z
+all modules verified
+STEP go-mod-integrity END    2026-11-24T19:17:41Z rc=0
+STEP go-build BEGIN  2026-11-24T19:17:41Z
+STEP go-build END    2026-11-24T19:17:42Z rc=0
+STEP go-vet BEGIN  2026-11-24T19:17:42Z
+STEP go-vet END    2026-11-24T19:17:42Z rc=0
+STEP staticcheck BEGIN  2026-11-24T19:17:42Z
+STEP staticcheck END    2026-11-24T19:17:44Z rc=0
+STEP sdk-build-vet BEGIN  2026-11-24T19:17:44Z
+STEP sdk-build-vet END    2026-11-24T19:17:45Z rc=0
+STEP domain-boundary BEGIN  2026-11-24T19:17:45Z
+ok  	github.com/Skryldev/suromesh/service/internal/domain	0.023s
+STEP domain-boundary END    2026-11-24T19:17:45Z rc=0
+STEP buf-lint BEGIN  2026-11-24T19:17:45Z
+STEP buf-lint END    2026-11-24T19:17:45Z rc=0
+STEP buf-generate-verify BEGIN  2026-11-24T19:17:45Z
+STEP buf-generate-verify END    2026-11-24T19:17:45Z rc=0
+STEP buf-breaking BEGIN  2026-11-24T19:17:45Z
+breaking-change check PASSED against committed baseline
+STEP buf-breaking END    2026-11-24T19:17:45Z rc=0
+GATES: ALL PASSED
+== static-gates rc=0 duration=12s
+== unit-tests 2026-11-24T19:17:45Z
+ Container suromesh-ci-20261124-191731-1584383-postgres-test-1 Running 
+ Container suromesh-ci-20261124-191731-1584383-postgres-test-1 Waiting 
+ Container suromesh-ci-20261124-191731-1584383-postgres-test-1 Healthy 
+ Container suromesh-ci-20261124-191731-1584383-ci-run-bedd2e36b40d Creating 
+ Container suromesh-ci-20261124-191731-1584383-ci-run-bedd2e36b40d Created 
+STEP unit-tests BEGIN  2026-11-24T19:17:45Z
+∅  cmd/e2eclient
+∅  cmd/migrate
+∅  cmd/service
+∅  gen/suromesh/service/v1
+∅  internal/grpcapi/errors
+∅  internal/grpcapi/handlers
+∅  internal/grpcapi/interceptors
+✓  internal/config (3ms)
+✓  internal/domain (22ms)
+∅  internal/ports
+∅  internal/testkit
+✓  internal/platform/logging (2ms)
+✓  internal/infrastructure/upstream (3ms)
+✓  internal/infrastructure/cryptography (4ms)
+✓  internal/app (184ms)
+✓  internal/grpcapi/server (173ms)
+✓  internal/infrastructure/persistence (430ms)
+✓  internal/application (1.074s)
+
+DONE 141 tests in 1.184s
+STEP unit-tests END    2026-11-24T19:17:47Z rc=0
+STEP sdk-unit-tests BEGIN  2026-11-24T19:17:47Z
+∅  cmd/tlgen
+✓  crypto (5ms)
+✓  crypto/rsakeys (8ms)
+∅  examples/auth
+∅  examples/internal/demo
+∅  examples/media
+∅  examples/messages
+∅  examples/session
+∅  examples/updates
+∅  internal/tlgen
+∅  internal/wstest
+∅  tests/vectors
+∅  tl/gen
+∅  tools/apidocs
+✓  mtproto (2ms)
+✓  tl (4ms)
+✓  transport/abridged (4ms)
+✓  tests/compatibility (8ms)
+✓  tests/auth (27ms)
+✓  session (105ms)
+✓  transport/ws (192ms)
+✓  rpc (202ms)
+✓  tests/protocol (262ms)
+✓  transport (520ms)
+✓  auth (683ms)
+✓  tests/rpc (3.155s)
+✓  tests/live (3.332s)
+✓  tests/transport (3.977s)
+✓  client (2m17.676s)
+
+=== Skipped
+=== SKIP: tests/compatibility TestPrimitivesEncode/int128 (0.00s)
+    compatibility_test.go:109: no Go builder for int128
+
+=== SKIP: tests/compatibility TestPrimitivesEncode/int256 (0.00s)
+    compatibility_test.go:109: no Go builder for int256
+
+=== SKIP: tests/live TestLiveAuthSendCodeSignIn (0.00s)
+    auth_test.go:17: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set
+
+=== SKIP: tests/live TestLiveAuth2FA (0.00s)
+    auth_test.go:82: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set
+
+=== SKIP: tests/live TestLiveErrorMatrix (0.00s)
+    errors_test.go:13: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set (this is the expected outcome without operator credentials)
+
+=== SKIP: tests/live TestLiveLifecycleConnectClose (0.00s)
+    lifecycle_test.go:90: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set (this is the expected outcome without operator credentials)
+
+=== SKIP: tests/live TestLiveMediaRoundTrip (0.00s)
+    media_test.go:14: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set (this is the expected outcome without operator credentials)
+
+=== SKIP: tests/live TestLiveDialogsAndHistory (0.00s)
+    messages_test.go:14: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set (this is the expected outcome without operator credentials)
+
+=== SKIP: tests/live TestLiveMutations (0.00s)
+    messages_test.go:29: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set (this is the expected outcome without operator credentials)
+
+=== SKIP: tests/live TestLiveRichText (0.00s)
+    messages_test.go:87: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set (this is the expected outcome without operator credentials)
+
+=== SKIP: tests/live TestLivePeers (0.00s)
+    peers_test.go:14: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set (this is the expected outcome without operator credentials)
+
+=== SKIP: tests/live TestLiveReconnect (0.00s)
+    reconnect_test.go:15: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set (this is the expected outcome without operator credentials)
+
+=== SKIP: tests/live TestLiveReconnectGraceful (0.00s)
+    reconnect_test.go:30: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set (this is the expected outcome without operator credentials)
+
+=== SKIP: tests/live TestLiveSessionReuse (0.00s)
+    session_test.go:15: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set
+
+=== SKIP: tests/live TestLiveSoak (0.00s)
+    soak_test.go:18: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set (this is the expected outcome without operator credentials)
+
+=== SKIP: tests/live TestLiveIncomingExactlyOnce (0.00s)
+    updates_test.go:14: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set (this is the expected outcome without operator credentials)
+
+=== SKIP: tests/live TestLiveGapAndDifference (0.00s)
+    updates_test.go:32: BLOCKED — REAL CREDENTIALS REQUIRED: SP_SDK_LIVE=1 not set (this is the expected outcome without operator credentials)
+
+DONE 637 tests, 17 skipped in 137.676s
+STEP sdk-unit-tests END    2026-11-24T19:20:05Z rc=0
+UNIT: ALL PASSED
+== unit-tests rc=0 duration=140s
+== fuzz-bounded 2026-11-24T19:20:05Z
+ Container suromesh-ci-20261124-191731-1584383-postgres-test-1 Running 
+ Container suromesh-ci-20261124-191731-1584383-postgres-test-1 Waiting 
+ Container suromesh-ci-20261124-191731-1584383-postgres-test-1 Healthy 
+ Container suromesh-ci-20261124-191731-1584383-ci-run-b1ddc9b7dc95 Creating 
+ Container suromesh-ci-20261124-191731-1584383-ci-run-b1ddc9b7dc95 Created 
+STEP fuzz-campaigns BEGIN  2026-11-24T19:20:06Z
+== FuzzParsePhone (client) fuzztime=15s 19:20:06
+ok  	github.com/Skryldev/suromesh/client	0.002s
+fuzz: elapsed: 0s, gathering baseline coverage: 0/24 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 24/24 completed, now fuzzing with 16 workers
+fuzz: elapsed: 3s, execs: 334294 (111430/sec), new interesting: 0 (total: 24)
+fuzz: elapsed: 6s, execs: 692705 (119462/sec), new interesting: 0 (total: 24)
+fuzz: elapsed: 9s, execs: 1049065 (118724/sec), new interesting: 0 (total: 24)
+fuzz: elapsed: 12s, execs: 1410142 (120372/sec), new interesting: 0 (total: 24)
+fuzz: elapsed: 15s, execs: 1768002 (119286/sec), new interesting: 0 (total: 24)
+fuzz: elapsed: 15s, execs: 1768002 (0/sec), new interesting: 0 (total: 24)
+PASS
+ok  	github.com/Skryldev/suromesh/client	15.098s
+== FuzzAuthResponseDecode (client) fuzztime=15s 19:20:22
+ok  	github.com/Skryldev/suromesh/client	0.002s
+fuzz: elapsed: 0s, gathering baseline coverage: 0/56 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 56/56 completed, now fuzzing with 16 workers
+fuzz: elapsed: 3s, execs: 322270 (107376/sec), new interesting: 0 (total: 56)
+fuzz: elapsed: 6s, execs: 682075 (119863/sec), new interesting: 0 (total: 56)
+fuzz: elapsed: 9s, execs: 1040221 (119500/sec), new interesting: 0 (total: 56)
+fuzz: elapsed: 12s, execs: 1401039 (120275/sec), new interesting: 0 (total: 56)
+fuzz: elapsed: 15s, execs: 1762528 (120433/sec), new interesting: 0 (total: 56)
+fuzz: elapsed: 15s, execs: 1762528 (0/sec), new interesting: 0 (total: 56)
+PASS
+ok  	github.com/Skryldev/suromesh/client	15.105s
+== FuzzMediaClassification (client) fuzztime=15s 19:20:38
+ok  	github.com/Skryldev/suromesh/client	0.002s
+fuzz: elapsed: 0s, gathering baseline coverage: 0/9 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 9/9 completed, now fuzzing with 16 workers
+fuzz: elapsed: 3s, execs: 2227 (742/sec), new interesting: 0 (total: 9)
+fuzz: elapsed: 6s, execs: 4624 (799/sec), new interesting: 0 (total: 9)
+fuzz: elapsed: 9s, execs: 6971 (782/sec), new interesting: 0 (total: 9)
+fuzz: elapsed: 12s, execs: 9241 (757/sec), new interesting: 0 (total: 9)
+fuzz: elapsed: 15s, execs: 11601 (787/sec), new interesting: 0 (total: 9)
+fuzz: elapsed: 15s, execs: 11601 (0/sec), new interesting: 0 (total: 9)
+PASS
+ok  	github.com/Skryldev/suromesh/client	15.054s
+== FuzzMessageEntities (client) fuzztime=15s 19:20:53
+ok  	github.com/Skryldev/suromesh/client	0.002s
+fuzz: elapsed: 0s, gathering baseline coverage: 0/4 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 4/4 completed, now fuzzing with 16 workers
+fuzz: elapsed: 3s, execs: 1896 (631/sec), new interesting: 0 (total: 4)
+fuzz: elapsed: 6s, execs: 3872 (659/sec), new interesting: 0 (total: 4)
+fuzz: elapsed: 9s, execs: 5854 (661/sec), new interesting: 0 (total: 4)
+fuzz: elapsed: 12s, execs: 7940 (695/sec), new interesting: 0 (total: 4)
+fuzz: elapsed: 15s, execs: 10001 (687/sec), new interesting: 0 (total: 4)
+fuzz: elapsed: 15s, execs: 10001 (0/sec), new interesting: 0 (total: 4)
+PASS
+ok  	github.com/Skryldev/suromesh/client	15.057s
+STEP fuzz-campaigns END    2026-11-24T19:21:09Z rc=0
+FUZZ: campaigns completed (bounded, see /src/service/docs/audit/evidence/phase27/fuzz-campaigns.txt)
+== fuzz-bounded rc=0 duration=64s
+--- cleanup (suromesh-ci-20261124-191731-1584383) ---

@@ -131,8 +131,13 @@ func (e *Envelope) Unseal(ctx context.Context, blob []byte) ([]byte, error) {
 	return plaintext, nil
 }
 
-// ReWrap rotates the KEK: decrypts only the DEK layer and re-wraps it
-// with the current provider version (ciphertext untouched).
+// ReWrap rotates the KEK: unseals the blob and reseals it under the
+// CURRENT provider version with a fresh DEK and nonce (the DEK is
+// re-generated, the plaintext is re-encrypted). The plaintext exists only
+// in process memory for the duration of the call; the old wrapped DEK
+// (and the old KEK version) is no longer needed to read the returned
+// blob. Note the original ciphertext is NOT byte-identical after
+// rotation — callers must persist the returned blob.
 func (e *Envelope) ReWrap(ctx context.Context, blob []byte) ([]byte, error) {
 	plaintext, err := e.Unseal(ctx, blob)
 	if err != nil {

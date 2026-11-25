@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS tenants (
 CREATE TABLE IF NOT EXISTS credentials (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id   UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-    key_hash    CHAR(64) NOT NULL UNIQUE,
-    prefix      CHAR(8)  NOT NULL,
+    key_hash    TEXT     NOT NULL UNIQUE,
+    prefix      TEXT     NOT NULL,
     permissions TEXT[] NOT NULL DEFAULT '{}',
     status      TEXT NOT NULL DEFAULT 'active'
                 CHECK (status IN ('active','revoked')),
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id     UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     display_alias TEXT NOT NULL,
-    phone_hash    CHAR(64) NOT NULL,
+    phone_hash    TEXT     NOT NULL,
     phone_mask    TEXT NOT NULL,
     status        TEXT NOT NULL DEFAULT 'pending_auth'
                   CHECK (status IN ('pending_auth','active','suspended','removed')),
@@ -40,7 +40,6 @@ CREATE TABLE IF NOT EXISTS accounts (
     UNIQUE (tenant_id, phone_hash)
 );
 CREATE INDEX IF NOT EXISTS idx_accounts_tenant ON accounts(tenant_id, status);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_accounts_phone_hash ON accounts(phone_hash);
 
 CREATE TABLE IF NOT EXISTS sessions (
     account_id     UUID PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
@@ -56,7 +55,7 @@ CREATE TABLE IF NOT EXISTS operations (
     account_id   UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
     kind         TEXT NOT NULL,
     op_key       TEXT NOT NULL,
-    fingerprint  CHAR(64) NOT NULL,
+    fingerprint  TEXT     NOT NULL,
     state        TEXT NOT NULL DEFAULT 'created'
                  CHECK (state IN ('created','claimed','sent','completed','failed','cancelled','timed_out','ambiguous')),
     result_ref   TEXT,

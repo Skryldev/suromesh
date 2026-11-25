@@ -1,0 +1,24 @@
+CREATE DATABASE
+migrate: up complete, schema verified
+VERSION          STATE      APPLIED AT
+0001_init        applied    2026-11-24T18:09:48Z
+summary: 1 known, 0 pending
+migrate: up complete, schema verified
+                List of tables
+ Schema |       Name        | Type  |  Owner   
+--------+-------------------+-------+----------
+ public | accounts          | table | suromesh
+ public | audit_events      | table | suromesh
+ public | credentials       | table | suromesh
+ public | operations        | table | suromesh
+ public | schema_migrations | table | suromesh
+ public | sessions          | table | suromesh
+ public | tenants           | table | suromesh
+(7 rows)
+
+foreign keys present: 5
+CREATE DATABASE
+migrate: up complete, schema verified
+migrate: up complete, schema verified
+migrate: up complete, schema verified
+migrate: up complete, schema verified

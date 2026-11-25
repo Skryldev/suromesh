@@ -70,3 +70,33 @@ LiveSessionReuse,live,requires real authorized session,BLOCKED_NO_LIVE_ACCOUNT,r
 LiveMessaging,live,requires real authorized account,BLOCKED_NO_LIVE_ACCOUNT,send/edit/delete,yes
 LiveMedia,live,requires real account,BLOCKED_NO_LIVE_ACCOUNT,upload/download SHA-256,yes
 LiveUpdates,live,requires real account + second sender,BLOCKED_NO_LIVE_ACCOUNT,real update stream,yes
+TestReliability_CancelBeforeDispatch,runtime-reliability,go test ./internal/application/ -run TestReliability,PASS,cancel before dispatch: 0 executions,no
+TestReliability_CancelDuringDispatch,runtime-reliability,go test ./internal/application/ -run TestReliability,PASS,"cancel mid-dispatch: caller ctx.Err, op completes once, pump healthy",no
+TestReliability_ShutdownWithPendingMutations,runtime-reliability,go test ./internal/application/ -run TestReliability,PASS,queued mutations fail ErrAccountStopped on Stop; no hang; no extra execution,no
+TestReliability_QueueSaturationDeterministic,runtime-reliability,go test ./internal/application/ -run TestReliability,PASS,blocked pump: queue rejects with ErrTooManyRequests (bounded probe),no
+TestReliability_ConcurrentMutations,runtime-reliability,go test ./internal/application/ -run TestReliability,PASS,"64 concurrent mutations: max concurrency 1, all complete",no
+TestReliability_DuplicateStartRunnerRace,runtime-reliability,go test ./internal/application/ -run TestReliability,PASS,"16-way StartRunner race: 1 winner, exactly 1 client",no
+TestReliability_StartFailureClosesClient,runtime-reliability,go test ./internal/application/ -run TestReliability,PASS,failed Start closes the constructed client (no leak across 3 attempts),no
+TestReliability_RepeatedStartStopCycles,runtime-reliability,go test ./internal/application/ -run TestReliability,PASS,"5 stop/start cycles: 1 client per cycle, each usable",no
+TestReliability_RepeatedConnectDisconnectCycles,runtime-reliability,go test ./internal/application/ -run TestReliability,PASS,"10 connect/disconnect cycles: state tracked, no wedge",no
+TestReliability_GoroutineHygiene,runtime-reliability,go test ./internal/application/ -run TestReliability,PASS,20 cycles: goroutine count returns to baseline (2s poll budget),no
+TestReliability_SubscriberCleanupOnRunnerStop,runtime-reliability,go test ./internal/application/ -run TestReliability,PASS,8 subscribers all released on stop; subscribe-after-stop fails typed,no
+TestMediaUpload_ScriptedSuccessCompletesWorker,grpc-contract,go test ./internal/grpcapi/server/ -run TestMediaUpload,PASS,"full upload path: chunks streamed to upstream, response mapped",no
+TestMediaUpload_ScriptedWorkerFailureMapped,grpc-contract,go test ./internal/grpcapi/server/ -run TestMediaUpload,PASS,upstream failure surfaces honestly; no double-close panic,no
+TestMediaDownload_ClientCancelReleasesWorker,grpc-contract,go test ./internal/grpcapi/server/ -run TestMediaDownload,PASS,client cancel releases the worker within 3s (no goroutine leak),no
+TestEnvelope_AdversarialTruncation,security,go test ./internal/infrastructure/cryptography/,PASS,every truncation 0..N fails typed ErrCrypto,no
+TestEnvelope_AdversarialByteFlip,security,go test ./internal/infrastructure/cryptography/,PASS,every single-byte flip fails typed ErrCrypto,no
+TestEnvelope_MalformedLengthFields,security,go test ./internal/infrastructure/cryptography/,PASS,hostile verLen/wrappedLen fail closed without OOB,no
+TestEnvelope_UnknownKEKVersion,security,go test ./internal/infrastructure/cryptography/,PASS,foreign key version fails closed,no
+TestEnvelope_ProviderUnavailableFailsClosed,security,go test ./internal/infrastructure/cryptography/,PASS,dead KEK provider: Seal/Unseal typed ErrCrypto,no
+TestEnvelope_RotationSemantics,security,go test ./internal/infrastructure/cryptography/,PASS,ReWrap=same-provider rotation; cross-provider must fail closed; migration choreography verified,no
+TestMigrationScenario_A_FreshInstall,migration,./scripts/ci.sh integration (Dockerized postgres:17-alpine),PASS,fresh DB → all migrations → schema+constraints verified → app round trip,no
+TestMigrationScenario_B_IdempotentRerun,migration,./scripts/ci.sh integration,PASS,re-run: ledger+tables byte-identical,no
+TestMigrationScenario_C_InterruptedMigrationRollback,migration,./scripts/ci.sh integration,PASS,"controlled mid-migration failure: full rollback, consistent ledger, roll-forward recovery",no
+TestMigrationScenario_D_UpgradePreservesData,migration,./scripts/ci.sh integration,PASS,"0001 + representative data + later migration: data preserved, backfill correct",no
+TestMigrationScenario_E_ConcurrentMigrationRuns,migration,./scripts/ci.sh integration,PASS,"8 concurrent migrators: advisory lock serializes, exactly-once, ledger consistent",no
+migration-cli fresh-up/status/idempotency/schema/4-process-race,migration,./scripts/ci.sh migration (migration-cli.sh),PASS,operator CLI battery incl. TRUE multi-process race (exactly-once),no
+TestMemoryEvidence_UploadBounded,media-memory,go test ./client/ -run TestMemoryEvidence,PASS,32 MiB upload: heap growth << 8 MiB budget (bounded by part size),no
+TestMemoryEvidence_DownloadBounded,media-memory,go test ./client/ -run TestMemoryEvidence,PASS,32 MiB download: heap growth << 8 MiB budget,no
+e2eclient 13 wire checks,e2e,./scripts/ci.sh e2e,PASS,13/13 wire checks green in definitive run (after SEC-27 fix); raw: phase27/e2e-results.txt,no
+live Soroush Plus SendCode/SignIn/updates,live,docs/testing-strategy.md live runbook,BLOCKED_NO_LIVE_ACCOUNT,requires authorized account credentials (operator opt-in),YES

@@ -39,3 +39,6 @@ desktop.ini
 # --- Service local deployment secrets ----------------------------------------
 service/deploy/kek.bin
 service/deploy/pg_password.txt
+service/deploy/compose/local-kek.bin
+service/deploy/compose/.e2e-kek.bin
+service/.proto-baseline/*.binpb.bak

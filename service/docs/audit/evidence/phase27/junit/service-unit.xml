@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="141" failures="0" errors="0" time="1.183816">
+	<testsuite tests="0" failures="0" time="0.000000" name="github.com/Skryldev/suromesh/service/cmd/e2eclient" timestamp="2026-11-24T19:17:45Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="github.com/Skryldev/suromesh/service/cmd/migrate" timestamp="2026-11-24T19:17:45Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="github.com/Skryldev/suromesh/service/cmd/service" timestamp="2026-11-24T19:17:45Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="github.com/Skryldev/suromesh/service/gen/suromesh/service/v1" timestamp="2026-11-24T19:17:45Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="7" failures="0" time="0.184000" name="github.com/Skryldev/suromesh/service/internal/app" timestamp="2026-11-24T19:17:45Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/app" name="TestRun_NormalLifecycle" time="0.010000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/app" name="TestRun_StartupFailureCleansUp" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/app" name="TestStop_RepeatedAfterTerminal" time="0.010000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/app" name="TestStop_ShutdownTimeout" time="0.110000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/app" name="TestStop_ConcurrentCalls" time="0.060000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/app" name="TestStop_CleanupOrdering" time="0.010000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/app" name="TestStop_BeforeRun" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="31" failures="0" time="1.074000" name="github.com/Skryldev/suromesh/service/internal/application" timestamp="2026-11-24T19:17:45Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestStartAll_OrdersAndStartsEverything" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestStartAll_FailureStopsStartedPrefixInReverse" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestStopAll_ReverseOrder" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestStopAll_JoinsErrorsAndStopsEverything" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestStopAll_RespectsContextDeadline" time="0.100000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestReliability_CancelBeforeDispatch" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestReliability_CancelDuringDispatch" time="0.050000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestReliability_ShutdownWithPendingMutations" time="0.050000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestReliability_QueueSaturationDeterministic" time="0.330000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestReliability_ConcurrentMutations" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestReliability_DuplicateStartRunnerRace" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestReliability_StartFailureClosesClient" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestReliability_RepeatedStartStopCycles" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestReliability_RepeatedConnectDisconnectCycles" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestReliability_GoroutineHygiene" time="0.250000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestReliability_SubscriberCleanupOnRunnerStop" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestRunner_StartWithSessionRestore" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestRunner_MutationSerialization" time="0.090000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestRunner_ReadsRunConcurrently" time="0.030000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestRunner_SessionPersistedOnUpstreamSignal" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestRunner_StopDuringBlockedMutation" time="0.020000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestRunner_SubscribeHubDelivery" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestRunner_SlowSubscriberDropped" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestManager_DuplicateRunnerRejected" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestManager_TenantScopedGet" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestStress_MutationThroughputAndOrdering" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestStress_QueueSaturationRejectsDeterministically" time="0.130000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestStress_ConcurrentSubscribeUnsubscribe" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestStress_MultipleSubscribersAllReceive" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestStress_StopAllIdempotent" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/application" name="TestStress_RunnerStopTwice" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="11" failures="0" time="0.003000" name="github.com/Skryldev/suromesh/service/internal/config" timestamp="2026-11-24T19:17:45Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/config" name="TestLoad_Defaults" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/config" name="TestLoad_EnvOverridesDefaults" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/config" name="TestLoad_KMSProviderFailsClosed" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/config" name="TestLoad_StorageRequired" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/config" name="TestLoad_BootstrapKeyValidation" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/config" name="TestLoad_UnknownKeysIgnored" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/config" name="TestValidate_TLSRules/no_tls_and_no_dev_flag" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/config" name="TestValidate_TLSRules/half_tls_pair" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/config" name="TestValidate_TLSRules" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/config" name="TestValidate_Ranges" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/config" name="TestConfig_LogValueShapeOnly" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="9" failures="0" time="0.022000" name="github.com/Skryldev/suromesh/service/internal/domain" timestamp="2026-11-24T19:17:45Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/domain" name="TestDomainDependencyBoundary" time="0.020000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/domain" name="TestPeerID_ParseRoundTrip" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/domain" name="TestPeerID_InvalidInputs" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/domain" name="TestPeerRef_StringForms" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/domain" name="TestErrorClassification_FullTaxonomy" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/domain" name="TestErrorClassification_SentinelsAreDistinct" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/domain" name="TestFloodWait_UnwrapAndSeconds" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/domain" name="TestFormatID_DecimalStrings" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/domain" name="TestStateStrings_Stable" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="github.com/Skryldev/suromesh/service/internal/grpcapi/errors" timestamp="2026-11-24T19:17:45Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="github.com/Skryldev/suromesh/service/internal/grpcapi/handlers" timestamp="2026-11-24T19:17:45Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="github.com/Skryldev/suromesh/service/internal/grpcapi/interceptors" timestamp="2026-11-24T19:17:45Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="23" failures="0" time="0.173000" name="github.com/Skryldev/suromesh/service/internal/grpcapi/server" timestamp="2026-11-24T19:17:46Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestAuthN_MissingKeyFails" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestAuthN_BadKeyFails" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestAuthZ_MissingPermissionDenied" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestAccounts_BindListGet" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestAuthFlow_SendCodeRequiresLiveRunner" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestHealth_ServedWithoutCredentials" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestManager_Isolation_TenantScopedGet" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestStreamUpdates_DeliversAndSequences" time="0.150000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestStreamUpdates_ClientCancelEndsCleanly" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestStreamHistory_UnscriptedFailsHonest" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestMediaUpload_FirstFrameMustBeMetadata" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestMediaUpload_MetadataValidation/zero_size" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestMediaUpload_MetadataValidation/oversize" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestMediaUpload_MetadataValidation/no_filename" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestMediaUpload_MetadataValidation/no_mime" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestMediaUpload_MetadataValidation/bad_account" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestMediaUpload_MetadataValidation" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestMediaUpload_SizeEnforcement" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestMediaUpload_UnscriptedUpstreamFailsHonest" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestDeadline_CallerDeadlineWins" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestMediaUpload_ScriptedSuccessCompletesWorker" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestMediaUpload_ScriptedWorkerFailureMapped" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/grpcapi/server" name="TestMediaDownload_ClientCancelReleasesWorker" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="13" failures="0" time="0.004000" name="github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography" timestamp="2026-11-24T19:17:46Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography" name="TestEnvelope_AdversarialTruncation" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography" name="TestEnvelope_AdversarialByteFlip" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography" name="TestEnvelope_MalformedLengthFields" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography" name="TestEnvelope_UnknownKEKVersion" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography" name="TestEnvelope_ProviderUnavailableFailsClosed" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography" name="TestEnvelope_RotationSemantics" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography" name="TestEnvelope_SealUnsealRoundTrip" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography" name="TestEnvelope_TamperFailsClosed" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography" name="TestEnvelope_WrongKeyFailsClosed" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography" name="TestEnvelope_RotationReWrap" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography" name="TestFileKeyProvider_Errors" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography" name="TestKMSProvider_FailsClosed" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/cryptography" name="TestEnvelope_EmptyPlaintextRejected" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="11" failures="0" time="0.430000" name="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" timestamp="2026-11-24T19:17:46Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestPersistence_TenantLifecycle" time="0.040000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestPersistence_AccountScopedAccess" time="0.020000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestPersistence_SessionStoreLoad" time="0.010000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestPersistence_IdempotencyClaimAndRace" time="0.020000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestPersistence_IdempotencyConcurrentClaims" time="0.020000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestPersistence_AuditRecorded" time="0.010000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestMigrationScenario_A_FreshInstall" time="0.080000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestMigrationScenario_B_IdempotentRerun" time="0.060000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestMigrationScenario_C_InterruptedMigrationRollback" time="0.040000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestMigrationScenario_D_UpgradePreservesData" time="0.060000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/persistence" name="TestMigrationScenario_E_ConcurrentMigrationRuns" time="0.070000"></testcase>
+	</testsuite>
+	<testsuite tests="30" failures="0" time="0.003000" name="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" timestamp="2026-11-24T19:17:46Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestSessionBlob_ExportImportSymmetry" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestSessionBlob_InvalidInputs/not_json" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestSessionBlob_InvalidInputs/wrong_version" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestSessionBlob_InvalidInputs/bad_base64_key" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestSessionBlob_InvalidInputs/short_key" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestSessionBlob_InvalidInputs/empty" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestSessionBlob_InvalidInputs" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestSessionBlob_RevocationReflected" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/context_canceled" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/context_deadline" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/wrapped_cancel" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/flood_wait" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/auth_key_unregistered" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/session_revoked" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/session_expired" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/file_ref_expired" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/peer_id_invalid" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/peer_hash_invalid" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/channel_private" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/message_id_invalid" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/generic_rpc_error" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/connection_lost_wrapper" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/client_closed" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/client_not_ready" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable/file_ref_expired_sentinel" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_ErrorMappingTable" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestTranslate_TransportAndNetwork" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestConvertUpdate_Families" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestConvertMessage_Fidelity" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/infrastructure/upstream" name="TestPeerConversion_RoundTrip" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="6" failures="0" time="0.002000" name="github.com/Skryldev/suromesh/service/internal/platform/logging" timestamp="2026-11-24T19:17:46Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/platform/logging" name="TestNew_JSONFieldsAndLevel" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/platform/logging" name="TestNew_LevelFiltering" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/platform/logging" name="TestNew_InvalidLevel" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/platform/logging" name="TestRequestID_AttachedFromContext" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/platform/logging" name="TestRedactor_ScrubsMessageAndAttributes" time="0.000000"></testcase>
+		<testcase classname="github.com/Skryldev/suromesh/service/internal/platform/logging" name="TestRedactor_ShortValuesNotRegistered" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="github.com/Skryldev/suromesh/service/internal/ports" timestamp="2026-11-24T19:17:46Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="github.com/Skryldev/suromesh/service/internal/testkit" timestamp="2026-11-24T19:17:46Z">
+		<properties>
+			<property name="go.version" value="go1.26.11 linux/amd64"></property>
+		</properties>
+	</testsuite>
+</testsuites>

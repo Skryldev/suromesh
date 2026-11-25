@@ -1,43 +1,56 @@
-# SuroMesh Service — multi-stage build (Phase 25 master spec §17).
-# Runtime: minimal, non-root, read-only-rootfs compatible.
-# No fake upstream, no dev key provider baked in: configuration decides.
+# SuroMesh Service — multi-stage build (Phase 25 §17; Phase 27 runtime
+# hardened further). Runtime: scratch (truly minimal), non-root numeric
+# UID, read-only-rootfs compatible, CA certificates included.
+#
+# Registry note: this environment's egress blocks gcr.io (distroless),
+# ghcr.io and cgr.dev; the pinned bases below come from docker.io, which
+# is reachable. scratch is stricter than distroless static: no libc, no
+# shell, no package DB — only the binary, CA certs, and metadata.
 
+# Build stage: pinned to the repo's declared toolchain (go.mod: go 1.26).
 FROM golang:1.26-alpine AS build
-WORKDIR /src
+WORKDIR /sdkroot
 
-# Cache module downloads (service module + SDK via the local replace).
-COPY go.mod go.sum ./
-COPY ../go.mod /sdk/go.mod
-# NOTE: docker build context MUST be the repository root with
-#   docker build -f service/Dockerfile .
-# so the SDK (../) is reachable for the development replace. Release
-# builds (no replace) may use service/ as context alone.
-RUN true
+# Layout mirrors the checkout EXACTLY so the service's development
+# replace directive (`replace ... => ../`) resolves: SDK module at
+# /sdkroot, service module at /sdkroot/service. (The SDK root module has
+# ZERO external dependencies — pure stdlib — so no root go.sum exists.)
+COPY go.mod ./
+COPY client/ ./client/
+COPY session/ ./session/
+COPY tl/ ./tl/
+COPY transport/ ./transport/
+COPY crypto/ ./crypto/
+COPY auth/ ./auth/
+COPY mtproto/ ./mtproto/
+COPY rpc/ ./rpc/
+COPY internal/ ./internal/
 
 COPY service/ ./service/
-COPY go.mod go.sum /sdk/
-COPY client/ /sdk/client/
-COPY session/ /sdk/session/
-COPY tl/ /sdk/tl/
-COPY transport/ /sdk/transport/
-COPY crypto/ /sdk/crypto/
-COPY auth/ /sdk/auth/
-COPY mtproto/ /sdk/mtproto/
-COPY rpc/ /sdk/rpc/
-COPY internal/ /sdk/internal/
 
-WORKDIR /src/service
+WORKDIR /sdkroot/service
+# Static binary (CGO off): runs on scratch. -trimpath + -s -w: no build
+# paths, no symbol table (smaller; no source paths leak into the image).
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags "-s -w" \
     -o /out/suromesh-service ./cmd/service
 
-FROM gcr.io/distroless/static-debian12:nonroot
+# Runtime stage: scratch = image contains ONLY the files below.
+FROM scratch
+
+# CA certificates (root store) from the builder: required for TLS to the
+# upstream and any TLS-enabled PostgreSQL. Go honors SSL_CERT_FILE.
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build /out/suromesh-service /usr/local/bin/suromesh-service
 
 # Read-only filesystem: the service writes nothing to disk (sessions are
-# in PostgreSQL, encrypted). Explicit writable paths (if ever needed):
-# VOLUME /var/lib/suromesh
-ENV SUROMESH_LISTEN_ADDR=":50051"
+# in PostgreSQL, encrypted).
+ENV SUROMESH_LISTEN_ADDR=":50051" \
+    SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 EXPOSE 50051
-USER nonroot:nonroot
+
+# Numeric non-root UID/GID (no /etc/passwd on scratch — numeric is the
+# contract; 65532 matches the k8s securityContext).
+USER 65532:65532
+
 ENTRYPOINT ["/usr/local/bin/suromesh-service"]

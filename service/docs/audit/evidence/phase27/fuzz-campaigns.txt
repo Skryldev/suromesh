@@ -1,0 +1,56 @@
+go: go version go1.26.11 linux/amd64
+buf: 1.75.0
+protoc-gen-go: protoc-gen-go v1.36.5
+protoc-gen-go-grpc: protoc-gen-go-grpc 1.5.1
+staticcheck: staticcheck 2026.2.2 (0.8.2)
+govulncheck: Go: go1.26.11
+gotestsum: gotestsum version v1.13.0
+psql: psql (PostgreSQL) 18.7
+== FuzzParsePhone (client) fuzztime=15s 19:20:06
+ok  	github.com/Skryldev/suromesh/client	0.002s
+fuzz: elapsed: 0s, gathering baseline coverage: 0/24 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 24/24 completed, now fuzzing with 16 workers
+fuzz: elapsed: 3s, execs: 334294 (111430/sec), new interesting: 0 (total: 24)
+fuzz: elapsed: 6s, execs: 692705 (119462/sec), new interesting: 0 (total: 24)
+fuzz: elapsed: 9s, execs: 1049065 (118724/sec), new interesting: 0 (total: 24)
+fuzz: elapsed: 12s, execs: 1410142 (120372/sec), new interesting: 0 (total: 24)
+fuzz: elapsed: 15s, execs: 1768002 (119286/sec), new interesting: 0 (total: 24)
+fuzz: elapsed: 15s, execs: 1768002 (0/sec), new interesting: 0 (total: 24)
+PASS
+ok  	github.com/Skryldev/suromesh/client	15.098s
+== FuzzAuthResponseDecode (client) fuzztime=15s 19:20:22
+ok  	github.com/Skryldev/suromesh/client	0.002s
+fuzz: elapsed: 0s, gathering baseline coverage: 0/56 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 56/56 completed, now fuzzing with 16 workers
+fuzz: elapsed: 3s, execs: 322270 (107376/sec), new interesting: 0 (total: 56)
+fuzz: elapsed: 6s, execs: 682075 (119863/sec), new interesting: 0 (total: 56)
+fuzz: elapsed: 9s, execs: 1040221 (119500/sec), new interesting: 0 (total: 56)
+fuzz: elapsed: 12s, execs: 1401039 (120275/sec), new interesting: 0 (total: 56)
+fuzz: elapsed: 15s, execs: 1762528 (120433/sec), new interesting: 0 (total: 56)
+fuzz: elapsed: 15s, execs: 1762528 (0/sec), new interesting: 0 (total: 56)
+PASS
+ok  	github.com/Skryldev/suromesh/client	15.105s
+== FuzzMediaClassification (client) fuzztime=15s 19:20:38
+ok  	github.com/Skryldev/suromesh/client	0.002s
+fuzz: elapsed: 0s, gathering baseline coverage: 0/9 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 9/9 completed, now fuzzing with 16 workers
+fuzz: elapsed: 3s, execs: 2227 (742/sec), new interesting: 0 (total: 9)
+fuzz: elapsed: 6s, execs: 4624 (799/sec), new interesting: 0 (total: 9)
+fuzz: elapsed: 9s, execs: 6971 (782/sec), new interesting: 0 (total: 9)
+fuzz: elapsed: 12s, execs: 9241 (757/sec), new interesting: 0 (total: 9)
+fuzz: elapsed: 15s, execs: 11601 (787/sec), new interesting: 0 (total: 9)
+fuzz: elapsed: 15s, execs: 11601 (0/sec), new interesting: 0 (total: 9)
+PASS
+ok  	github.com/Skryldev/suromesh/client	15.054s
+== FuzzMessageEntities (client) fuzztime=15s 19:20:53
+ok  	github.com/Skryldev/suromesh/client	0.002s
+fuzz: elapsed: 0s, gathering baseline coverage: 0/4 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 4/4 completed, now fuzzing with 16 workers
+fuzz: elapsed: 3s, execs: 1896 (631/sec), new interesting: 0 (total: 4)
+fuzz: elapsed: 6s, execs: 3872 (659/sec), new interesting: 0 (total: 4)
+fuzz: elapsed: 9s, execs: 5854 (661/sec), new interesting: 0 (total: 4)
+fuzz: elapsed: 12s, execs: 7940 (695/sec), new interesting: 0 (total: 4)
+fuzz: elapsed: 15s, execs: 10001 (687/sec), new interesting: 0 (total: 4)
+fuzz: elapsed: 15s, execs: 10001 (0/sec), new interesting: 0 (total: 4)
+PASS
+ok  	github.com/Skryldev/suromesh/client	15.057s

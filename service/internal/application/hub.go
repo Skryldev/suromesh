@@ -65,6 +65,7 @@ type Runner struct {
 	hub      *updateHub
 	pumpCtx  context.Context
 	pumpStop context.CancelFunc
+	pumpDone <-chan struct{} // closed when the pump exits (shutdown race guard)
 
 	started atomic.Bool
 	stopped atomic.Bool
@@ -139,19 +140,25 @@ func (r *Runner) Start(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("runner %s: create client: %w", r.cfg.AccountID, err)
 	}
+	// Every failure after client construction must close the client —
+	// otherwise a retry creates a second client while the first leaks.
+	closeOnFailure := func(err error) error {
+		_ = sess.Close(context.WithoutCancel(ctx))
+		return err
+	}
 
 	r.hub = newUpdateHub(r.cfg.StreamBuffer)
 	if _, err := sess.SubscribeUpdates(ctx, func(ctx context.Context, ev domain.UpdateEvent) {
 		r.hub.publish(ev)
 	}); err != nil {
-		return fmt.Errorf("runner %s: subscribe updates: %w", r.cfg.AccountID, err)
+		return closeOnFailure(fmt.Errorf("runner %s: subscribe updates: %w", r.cfg.AccountID, err))
 	}
 
 	if r.cfg.AutoConnect {
 		if err := sess.Connect(ctx); err != nil {
-			// The client remains constructed (retryable via Connect RPC);
-			// startup reports the failure honestly.
-			return fmt.Errorf("runner %s: connect: %w", r.cfg.AccountID, err)
+			// The client is closed here; a later Connect RPC retry goes
+			// through a fresh runner Start (startup reports honestly).
+			return closeOnFailure(fmt.Errorf("runner %s: connect: %w", r.cfg.AccountID, err))
 		}
 		r.desired = domain.DesiredRunning
 	}
@@ -163,6 +170,7 @@ func (r *Runner) Start(ctx context.Context) error {
 	// drains the queue failing every pending request (no silent hangs).
 	pumpCtx, pumpCancel := context.WithCancel(context.Background())
 	r.pumpCtx, r.pumpStop = pumpCtx, pumpCancel
+	r.pumpDone = pumpCtx.Done()
 	go r.pump(pumpCtx)
 	return nil
 }
@@ -235,6 +243,16 @@ func (r *Runner) Stop(ctx context.Context) error {
 // Mutate submits a state-changing operation to the account's serialized
 // queue. Errors propagate verbatim from the operation. Rejection with
 // ErrTooManyRequests occurs when the bounded queue is full.
+//
+// Cancellation semantics (documented, tested): canceling ctx while the
+// request sits in the queue or executes means the caller observes
+// context.Canceled/DeadlineExceeded, but the operation MAY still run
+// once — the pump does not drop already-enqueued requests. Callers that
+// need to know the outcome must consult the idempotency ledger
+// (operations table), which is exactly what the messaging use case does.
+// If the runner stops after enqueue but before dispatch, the caller gets
+// ErrAccountStopped deterministically (the pump drains and fails all
+// pending requests; the pumpDone guard covers the enqueue race).
 func (r *Runner) Mutate(ctx context.Context, op func(ports.ClientSession) error) error {
 	if _, err := r.currentSession(); err != nil {
 		return err
@@ -248,13 +266,19 @@ func (r *Runner) Mutate(ctx context.Context, op func(ports.ClientSession) error)
 		return fmt.Errorf("%w: mutation queue full for account %s",
 			domain.ErrTooManyRequests, r.cfg.AccountID)
 	}
-	// The runner's pump drains mutQ; in S1-tests the pump runs inline via
-	// drainQueue. See Manager.StartPumps.
+	// Fast path: the pump (or its shutdown drain) already answered.
+	select {
+	case err := <-req.done:
+		return err
+	default:
+	}
 	select {
 	case err := <-req.done:
 		return err
 	case <-ctx.Done():
 		return ctx.Err()
+	case <-r.pumpDone:
+		return fmt.Errorf("%w: %s (runner stopped)", domain.ErrAccountStopped, r.cfg.AccountID)
 	}
 }
 

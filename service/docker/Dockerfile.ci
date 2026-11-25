@@ -1,0 +1,58 @@
+# SuroMesh CI runner image (Phase 27 — Docker-native CI/CD).
+#
+# Purpose: one pinned image that executes every in-container validation
+# step (static gates, unit/race tests, fuzz campaigns, proto tooling,
+# migration scenarios, integration tests, E2E client, security scans).
+# The host needs nothing but Docker + bash; see scripts/ci.sh and
+# service/docs/operations/docker-ci.md.
+#
+# Reproducibility policy:
+#   - Base image pinned by tag (golang:1.26-alpine = the repo's declared
+#     Go 1.26 toolchain; the digest is recorded at build time in the
+#     evidence bundle — update deliberately, see "image updates" in
+#     docs/operations/docker-ci.md).
+#   - Tools installed via `go install tool@version` with EXPLICIT
+#     versions resolved against the same module proxy as the code.
+#   - protoc-gen-go / protoc-gen-go-grpc versions match the committed
+#     generated-code headers exactly (drift checks are meaningful only
+#     when the generators match).
+
+FROM golang:1.26-alpine
+
+# -- runtime tooling: git (codegen drift diff), jq (evidence shaping),
+#    curl (readiness probes), psql (migration status checks), openssl
+#    (ephemeral e2e key material), GNU coreutils (timeout/timeout -k),
+#    gcc/musl-dev (race detector requires CGO on Alpine).
+RUN apk add --no-cache \
+        bash git jq curl openssl postgresql-client coreutils ca-certificates \
+        gcc musl-dev \
+    && git config --global --add safe.directory '*' \
+    && git config --global user.email "ci@suromesh.invalid" \
+    && git config --global user.name "SuroMesh CI"
+
+# -- Pinned analysis/proto/test tools (versions verified against the
+#    committed generator headers and the module proxy; bump deliberately).
+# Separate RUN layers: a transient failure only retries the failed tool
+# (layer cache keeps the rest).
+# GOPROXY: this environment's egress blocks storage.googleapis.com (the
+# proxy.golang.org redirect target), so the checksum-verified mirror
+# goproxy.cn is used (sumdb transparency is preserved — every download is
+# still GOSUMDB-verified). `direct` remains the fallback.
+ENV GOPROXY="https://goproxy.cn,direct"
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.5
+RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
+RUN go install github.com/bufbuild/buf/cmd/buf@v1.75.0
+RUN go install honnef.co/go/tools/cmd/staticcheck@v0.8.2
+RUN go install gotest.tools/gotestsum@v1.13.0
+RUN go install golang.org/x/vuln/cmd/govulncheck@v1.10.0
+# GNU grep AFTER the tool layers: busybox grep lacks --include (used by
+# scripts/ci/fuzz.sh); placing this last keeps the tool layers cached.
+RUN apk add --no-cache grep
+
+ENV PATH="${PATH}:/go/bin"
+
+WORKDIR /src
+# The repository is bind-mounted at /src by ci.compose.yml; every check
+# script lives in /src/service/scripts/ci and is invoked via
+# `docker compose run --rm ci <script>`.
+CMD ["bash", "-c", "echo 'SuroMesh CI runner — invoke a script, e.g. service/scripts/ci/unit.sh'; exit 2"]

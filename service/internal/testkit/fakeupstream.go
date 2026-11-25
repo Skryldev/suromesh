@@ -35,6 +35,8 @@ type FakeClient struct {
 	OnSubmitPassword func() error
 	OnSendMessage    func(text string) (domain.Message, error)
 	OnGetMe          func() (domain.Peer, error)
+	OnUploadMedia    func(spec ports.UploadSpec, r io.Reader) (domain.Message, error)
+	OnDownloadMedia  func(ref domain.PeerRef, id int64, w io.Writer) error
 
 	authState    domain.AuthState
 	connected    bool
@@ -87,8 +89,22 @@ func (f *FakeClient) Close(ctx context.Context) error {
 	f.mu.Lock()
 	f.closed = true
 	f.connected = false
+	// Closing the client tears down its update channel: the delivery
+	// goroutine (SubscribeUpdates) exits after draining — the runner's
+	// Stop path therefore leaves no background goroutines behind.
+	if f.sentUpdates != nil {
+		close(f.sentUpdates)
+		f.sentUpdates = nil
+	}
 	f.mu.Unlock()
 	return nil
+}
+
+// Closed reports whether Close has been called (test assertion aid).
+func (f *FakeClient) Closed() bool {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.closed
 }
 
 func (f *FakeClient) SendCode(ctx context.Context, phone string) error {
@@ -162,12 +178,13 @@ func (f *FakeClient) SetAuthState(s domain.AuthState) {
 }
 
 // Publish delivers one update to the registered handler (test-driven
-// upstream event injection).
+// upstream event injection). Events published after Close are dropped —
+// a closed client has no live update channel.
 func (f *FakeClient) Publish(ev domain.UpdateEvent) {
 	f.mu.Lock()
-	ch := f.sentUpdates
+	ch, closed := f.sentUpdates, f.closed
 	f.mu.Unlock()
-	if ch != nil {
+	if ch != nil && !closed {
 		ch <- ev
 	}
 }
@@ -223,22 +240,38 @@ func (f *FakeClient) GetMediaMetadata(ctx context.Context, ref domain.PeerRef, i
 	return domain.MediaSummary{}, ErrUnscripted
 }
 func (f *FakeClient) UploadMedia(ctx context.Context, spec ports.UploadSpec, r io.Reader) (domain.Message, error) {
+	f.mu.Lock()
+	fn := f.OnUploadMedia
+	f.mu.Unlock()
+	if fn != nil {
+		return fn(spec, r)
+	}
 	return domain.Message{}, ErrUnscripted
 }
 func (f *FakeClient) DownloadMedia(ctx context.Context, ref domain.PeerRef, id int64, w io.Writer) error {
+	f.mu.Lock()
+	fn := f.OnDownloadMedia
+	f.mu.Unlock()
+	if fn != nil {
+		return fn(ref, id, w)
+	}
 	return ErrUnscripted
 }
 
-// SubscribeUpdates registers the update channel used by Publish.
+// SubscribeUpdates registers the update channel used by Publish. The
+// delivery goroutine captures ITS channel locally: Close closes (and
+// nils) the field without racing this loop — a closed captured channel
+// drains and ends the goroutine deterministically.
 func (f *FakeClient) SubscribeUpdates(ctx context.Context, h ports.UpdateHandler) (func(), error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if f.sentUpdates != nil {
 		close(f.sentUpdates)
 	}
-	f.sentUpdates = make(chan domain.UpdateEvent, 256)
+	ch := make(chan domain.UpdateEvent, 256)
+	f.sentUpdates = ch
 	go func() {
-		for ev := range f.sentUpdates {
+		for ev := range ch {
 			h(ctx, ev)
 		}
 	}()

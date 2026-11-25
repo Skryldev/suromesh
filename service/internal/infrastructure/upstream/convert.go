@@ -5,7 +5,6 @@ package upstream
 
 import (
 	"fmt"
-	"time"
 
 	sdkclient "github.com/Skryldev/suromesh/client"
 	"github.com/Skryldev/suromesh/tl/gen"
@@ -217,9 +216,6 @@ func convertResolvedPeer(p sdkclient.Peer) domain.Peer {
 		return domain.Peer{}
 	}
 }
-
-// wireDate converts an upstream unix-second date.
-func wireDate(sec int32) time.Time { return time.Unix(int64(sec), 0) }
 
 // unexpectedType builds a protocol-failure error for upstream responses
 // outside the contract (classified, never a payload dump).
